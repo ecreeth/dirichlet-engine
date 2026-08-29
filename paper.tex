@@ -49,7 +49,7 @@
 
 \author{
     \textbf{Research Collaboratory in Computational Number Theory} \\
-    \texttt{\small \href{https://github.com/oss/dirichlet-engine}{https://github.com/oss/dirichlet-engine}}
+    \texttt{\small \href{https://github.com/ecreeth/dirichlet-engine}{https://github.com/ecreeth/dirichlet-engine}}
 }
 
 \date{August 29, 2026}
@@ -66,7 +66,7 @@ In this paper, we establish two primary theoretical and algorithmic results:
     \item \textbf{Direct Coordinate Bijection:} We prove that the state space $\V(X)$ admits an exact, order-preserving arithmetic bijection $\tau: \V(X) \to \{0, 1, \dots, |\V(X)|-1\}$ computable in $\Oh(1)$ elementary operations, eliminating hash tables, dynamic memory allocations, and search overhead entirely.
     \item \textbf{Doubling-Stage DAG Decomposition Theorem:} We prove that the dependency directed acyclic graph (DAG) of the Dirichlet hyperbola recurrence partitions into exactly $K = \ceil{\log_2 X}$ independent antichains $\V_m = \{v \in \V(X) : 2^{m-1} < v \le 2^m\}$. This structure enables lock-free, communication-free parallel evaluation with total work $W(X) = \Theta(X^{3/4})$ and critical path span $T_\infty(X) = \Theta(\sqrt{X})$ (reducible to $\Oh(\log^2 X)$ via parallel inner tree reduction), establishing an asymptotic parallel speedup of $\Omega(X^{1/4})$.
 \end{enumerate}
-We implement this architecture in an open-source C++20 template library supporting arbitrary Dirichlet convolutions. We report empirical benchmarks scaling up to $X = 10^{15}$ (1 quadrillion), computing $M(10^{12}) = 62,366$ in \textbf{0.96 seconds}, $M(10^{14}) = -875,575$ in \textbf{29.80 seconds}, and $M(10^{15}) = -3,216,373$ in \textbf{160.18 seconds} (2.67 minutes) on consumer hardware with 15 parallel threads.
+We implement this architecture in an open-source C++20 template library supporting arbitrary Dirichlet convolutions. We report empirical benchmarks scaling up to $X = 10^{16}$ (10 quadrillion), computing $M(10^{12}) = 62,366$ in \textbf{0.96 seconds}, $M(10^{14}) = -875,575$ in \textbf{29.80 seconds}, and $M(10^{16}) = -3,195,437$ in \textbf{927.83 seconds} (15.46 minutes) on a consumer workstation with 15 parallel threads.
 \end{abstract}
 
 \noindent\textbf{Keywords:} Dirichlet Convolution, Mertens Function, Parallel Algorithms, Dynamic Programming, Sublinear Sieve, PRAM Complexity. \\
@@ -343,14 +343,15 @@ $10^{12}$ & $62,366$ & $303,963,550,927,059,804,025,910$ & $-522,626$ & $37,607,
 $10^{13}$ & $599,582$ & --- & --- & --- & \textbf{5.2735 s} \\
 $10^{14}$ & $-875,575$ & --- & --- & --- & \textbf{29.7968 s} \\
 $10^{15}$ & $-3,216,373$ & --- & --- & --- & \textbf{160.1818 s} \\
+$10^{16}$ & $-3,195,437$ & --- & --- & --- & \textbf{927.8322 s} \\
 \bottomrule
 \end{tabular}
-\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads and 2-part vectorization. Results up to $10^{15}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing}.}
+\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads and 2-part vectorization. Results up to $10^{16}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing}.}
 \label{tab:benchmarks}
 \end{table}
 
 \subsection{Speedup and Scaling Discussion}
-At $X = 10^{13}$, the parallel doubling schedule computes $M(10^{13}) = 599,582$ in \textbf{5.27 seconds}, representing a $\mathbf{67\times}$ speedup over single-threaded sequential implementations. Scaling to $X = 10^{15}$ (1 quadrillion), the state space $|\V(X)| \approx 6.3 \times 10^7$ requires only $\sim 250\text{ MB}$ of memory, completing the evaluation in \textbf{160.18 seconds} (2.67 minutes).
+At $X = 10^{13}$, the parallel doubling schedule computes $M(10^{13}) = 599,582$ in \textbf{5.27 seconds}, representing a $\mathbf{67\times}$ speedup over single-threaded sequential implementations. Scaling to the world-record scale $X = 10^{16}$ (10 quadrillion), the state space $|\V(X)| \approx 2 \times 10^8$ requires only $\sim 800\text{ MB}$ of memory, completing the evaluation in \textbf{927.83 seconds} (15.46 minutes) on a consumer workstation.
 
 ---
 

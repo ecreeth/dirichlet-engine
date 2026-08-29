@@ -168,8 +168,9 @@ We validated our C++20 implementation across multiple scales and thread configur
 | **$10^{13}$** | $599,582$ | — | — | — | **5.2735 s** |
 | **$10^{14}$** | $-875,575$ | — | — | — | **29.7968 s** |
 | **$10^{15}$** | $-3,216,373$ | — | — | — | **160.1818 s** |
+| **$10^{16}$** | $-3,195,437$ | — | — | — | **927.8322 s** |
 
-With the 2-part sequential memory streaming architecture, the evaluation of $M(10^{14}) = -875,575$ completes in **29.80 seconds**, and scaling to **1 Quadrillion** ($M(10^{15}) = -3,216,373$) completes in **160.18 seconds** (2.67 minutes) on a single consumer machine, establishing a new practical standard for general Dirichlet hyperbola sieves.
+With the 2-part sequential memory streaming architecture, the evaluation of $M(10^{14}) = -875,575$ completes in **29.80 seconds**, scaling to **1 Quadrillion** ($M(10^{15}) = -3,216,373$) in **160.18 seconds**, and reaching the world-scale milestone of **10 Quadrillion** ($M(10^{16}) = -3,195,437$) in **15.46 minutes** on a single workstation with $\approx 800\text{ MB}$ memory footprint.
 
 ---
 

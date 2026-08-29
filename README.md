@@ -33,6 +33,7 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 | $10^{13}$ | $10\text{ Trillion}$ | Mertens $M(X)$ | $599,582$ | **5.273 s** |
 | $10^{14}$ | $100\text{ Trillion}$ | Mertens $M(X)$ | $-875,575$ | **29.796 s** ($<30\text{ s}$) |
 | $10^{15}$ | $1\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,216,373$ | **160.182 s** ($2.67\text{ min}$) |
+| $10^{16}$ | $10\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,195,437$ | **927.832 s** ($15.46\text{ min}$) |
 
 ---
 
