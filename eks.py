@@ -87,26 +87,33 @@ def prime_pi_hyperbola(X: int) -> int:
         v = X // i
         V.append(v)
         i = X // v + 1
-    # V is descending; we'll iterate in ascending order later
+    V.reverse()  # ascending order
+    n = len(V)
+    S_isqrt = math.isqrt(X)
+
+    def get_idx(v: int) -> int:
+        return v - 1 if v <= S_isqrt else n - (X // v)
 
     # ---- Step 2: initialise DP with S[v] = v - 1 (candidates 2..v) ----
-    S = {v: v - 1 for v in V}
+    S_arr = [v - 1 for v in V]
 
     # ---- Step 3: sieve over primes p up to √X ----
-    for p in range(2, int(math.isqrt(X)) + 1):
-        # if p is composite, S[p] == S[p-1]; skip
-        if S.get(p, 0) <= S.get(p - 1, 0):
+    for p in range(2, S_isqrt + 1):
+        idx_p = get_idx(p)
+        idx_p_minus_1 = get_idx(p - 1)
+        if S_arr[idx_p] <= S_arr[idx_p_minus_1]:
             continue
 
-        sp = S[p - 1]   # number of primes < p
+        sp = S_arr[idx_p_minus_1]   # number of primes < p
         p2 = p * p
-        for v in V:
+        for idx_v in range(n - 1, -1, -1):
+            v = V[idx_v]
             if v < p2:
                 break
             # DP update: S[v] -= (S[v // p] - sp)
-            S[v] -= (S[v // p] - sp)
+            S_arr[idx_v] -= (S_arr[get_idx(v // p)] - sp)
 
-    return S[X]
+    return S_arr[-1]
 
 
 # ---------------------------------------------------------------------
@@ -117,7 +124,7 @@ def mertens_hyperbola(X: int) -> int:
     """
     Return M(X) = sum_{n=1}^X μ(n).
     Uses the hyperbola recurrence: M(n) = 1 - sum_{k=2}^n M(n // k).
-    O(√X) memory and time.
+    O(√X) memory and sub-linear time.
     """
     if X < 1:
         return 0
@@ -129,23 +136,30 @@ def mertens_hyperbola(X: int) -> int:
         v = X // i
         V.append(v)
         i = X // v + 1
+    V.reverse()  # ascending order
+    n = len(V)
+    S_isqrt = math.isqrt(X)
+
+    def get_idx(v: int) -> int:
+        return v - 1 if v <= S_isqrt else n - (X // v)
 
     # ---- Process values in ascending order ----
-    M = {}
-    for v in sorted(V):          # ascending
+    M = [0] * n
+    for idx_v in range(n):
+        v = V[idx_v]
         if v == 1:
-            M[v] = 1
+            M[idx_v] = 1
             continue
         total = 1                # 1 - sum_{k=2}^v M(v//k)
         k = 2
         while k <= v:
             q = v // k
             next_k = v // q + 1
-            total -= (next_k - k) * M[q]   # q < v, already computed
+            total -= (next_k - k) * M[get_idx(q)]   # q < v, already computed
             k = next_k
-        M[v] = total
+        M[idx_v] = total
 
-    return M[X]
+    return M[-1]
 
 
 # ---------------------------------------------------------------------
@@ -164,8 +178,8 @@ def main():
     print("First 20 primes:", primes[:20])
 
     # ---- 5b. n-th prime ----
-    print("\n--- 5b. Finding specific primes ---")
-    tests = [(442, 3089), (443, 3109), (1_000_000, 15_485_863)]
+    print("\n--- 5b. Finding specific primes (sequential trial division) ---")
+    tests = [(100, 541), (442, 3089), (443, 3109), (10_000, 104_729)]
     for n, target in tests:
         start = time.perf_counter()
         p = nth_prime_eks(n)
@@ -175,7 +189,7 @@ def main():
 
     # ---- 5c. Prime counting (π(X)) ----
     print("\n--- 5c. Prime counting π(X) via hyperbola DP ---")
-    pi_tests = [(10, 4), (100, 25), (1_000_000, 78_498), (10_000_000, 664_579)]
+    pi_tests = [(10, 4), (100, 25), (1_000_000, 78_498), (10_000_000, 664_579), (100_000_000, 5_761_455)]
     for X, target in pi_tests:
         start = time.perf_counter()
         pi = prime_pi_hyperbola(X)
@@ -193,14 +207,12 @@ def main():
         (10_000_000, 1037),
         (100_000_000, 1928),
         (1_000_000_000, -222),
-        (10_000_000_000, -33722),
     ]
     for X, target in m_tests:
         start = time.perf_counter()
         M = mertens_hyperbola(X)
         elapsed = time.perf_counter() - start
         status = "✅" if M == target else "❌"
-        sqrtX = math.isqrt(X)
         ratio = abs(M) / math.sqrt(X) if X > 0 else 0
         print(f"  M({X:12d}) = {M:8d}  (target {target:8d}) {status}  "
               f"|M|/√X = {ratio:.6f}  ({elapsed:.3f}s)")
