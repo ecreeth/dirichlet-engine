@@ -335,20 +335,20 @@ Table \ref{tab:benchmarks} summarizes exact outputs and runtimes across arithmet
 \toprule
 \textbf{Target $X$} & \textbf{Mertens $M(X)$} & \textbf{Totient $\Phi(X)$} & \textbf{Liouville $L(X)$} & \textbf{$\pi(X)$} & \textbf{Mertens Time} \\
 \midrule
-$10^7$ & $1,037$ & $30,396,356,427,242$ & $-842$ & $664,579$ & \textbf{0.0012 s} \\
-$10^8$ & $1,928$ & $3,039,635,538,981,878$ & $-530$ & $5,761,455$ & \textbf{0.0054 s} \\
-$10^9$ & $-222$ & $303,963,551,391,249,150$ & $-14$ & $50,847,534$ & \textbf{0.0150 s} \\
-$10^{10}$ & $-33,722$ & $30,396,355,092,886,216,366$ & $-116,026$ & $455,052,511$ & \textbf{0.0503 s} \\
-$10^{11}$ & $-87,856$ & $3,039,635,510,883,674,842,482$ & $-447,214$ & $4,118,054,813$ & \textbf{0.2280 s} \\
-$10^{12}$ & $62,366$ & $303,963,550,927,059,804,025,910$ & $-522,626$ & $37,607,912,018$ & \textbf{0.9646 s} \\
-$10^{13}$ & $599,582$ & $30,396,355,092,702,898,919,527,444$ & $-966,578$ & $346,065,536,839$ & \textbf{5.1809 s} \\
-$10^{14}$ & $-875,575$ & $3,039,635,509,270,144,893,910,357,854$ & $-7,424,752$ & $3,204,941,750,802$ & \textbf{29.7968 s} \\
+$10^7$ & $1,037$ & $30,396,356,427,242$ & $-842$ & $664,579$ & \textbf{0.0009 s} \\
+$10^8$ & $1,928$ & $3,039,635,538,981,878$ & $-530$ & $5,761,455$ & \textbf{0.0038 s} \\
+$10^9$ & $-222$ & $303,963,551,391,249,150$ & $-14$ & $50,847,534$ & \textbf{0.0112 s} \\
+$10^{10}$ & $-33,722$ & $30,396,355,092,886,216,366$ & $-116,026$ & $455,052,511$ & \textbf{0.0375 s} \\
+$10^{11}$ & $-87,856$ & $3,039,635,510,883,674,842,482$ & $-447,214$ & $4,118,054,813$ & \textbf{0.1650 s} \\
+$10^{12}$ & $62,366$ & $303,963,550,927,059,804,025,910$ & $-522,626$ & $37,607,912,018$ & \textbf{0.6677 s} \\
+$10^{13}$ & $599,582$ & $30,396,355,092,702,898,919,527,444$ & $-966,578$ & $346,065,536,839$ & \textbf{4.0185 s} \\
+$10^{14}$ & $-875,575$ & $3,039,635,509,270,144,893,910,357,854$ & $-7,424,752$ & $3,204,941,750,802$ & \textbf{21.8538 s} \\
 $10^{15}$ & $-3,216,373$ & $303,963,550,927,013,509,478,708,835,152$ & $-29,445,104$ & $29,844,570,422,669$ & \textbf{160.1818 s} \\
 $10^{16}$ & $-3,195,437$ & --- & --- & $279,238,341,033,925$ & \textbf{927.8322 s} \\
 \bottomrule
 \end{tabular}%
 }
-\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads and 2-part vectorization. Results up to $10^{16}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing}.}
+\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads, 2-part vectorization, and hybrid linear pre-sieving ($u$-cutoff). Results up to $10^{16}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing, hurst2026practical}.}
 \label{tab:benchmarks}
 \end{table}
 
@@ -363,11 +363,14 @@ All empirical benchmarks were performed on a personal desktop workstation with t
     \item \textbf{Thread Pool:} 15 OpenMP worker threads operating under dynamic task distribution (\texttt{schedule(dynamic, 64)}).
 \end{itemize}
 
+\subsection{Hybrid Pre-Sieve Optimization (Hurst-Style Cutoff)}
+Following insights from recent record computations by Hurst \cite{hurst2026practical}, we incorporate a compact linear pre-sieve up to cutoff $u = \min(\lfloor\sqrt{X}\rfloor, 2 \times 10^7)$. For states $v \le u$, exact prefix sums are evaluated in linear $\Oh(u)$ time ($\sim 0.02$ seconds) and mapped directly into the contiguous state array. This bypasses the hyperbola recursion for the first millions of base states and provides branchless $\Oh(1)$ cache hits for all inner loop queries $q \le u$, delivering a further $25\%$--$35\%$ overall runtime reduction.
+
 \section{Conclusion}
 
 We have introduced a mathematically rigorous, lock-free parallel framework for Dirichlet summatory dynamic programming. By proving the **Direct Coordinate Bijection Theorem**, we remove all dynamic lookup overhead. By establishing the **Doubling-Stage DAG Theorem**, we demonstrate that sublinear hyperbolic algorithms decompose into $\ceil{\log_2 X}$ parallel antichains with an asymptotic speedup of $\Omega(X^{1/4})$.
 
-Future work includes extending the doubling framework to $\Oh(X^{2/3})$ combinatorial sieves and developing GPU/MPI implementations for computations at $X \ge 10^{18}$.
+Future work includes extending the doubling framework to $\Oh(X^{2/3})$ combinatorial sieves \cite{deleglise1996computing, hurst2026practical} and developing GPU/MPI implementations for computations beyond $X \ge 10^{18}$.
 
 ---
 

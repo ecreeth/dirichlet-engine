@@ -112,7 +112,41 @@ public:
         if (X < 1) return 0;
         QuotientSpace qs(X);
         const int n = qs.n;
+        const int64 S = qs.S;
         std::vector<int> M(n, 0);
+
+        // Hurst-style Linear Pre-sieve up to u = min(S, 20,000,000)
+        int64 u = std::min(S, 20000000LL);
+        if (u >= 2) {
+            std::vector<int8_t> mu(u + 1, 0);
+            std::vector<int> primes;
+            primes.reserve(static_cast<size_t>(u / 10));
+            std::vector<bool> is_prime(u + 1, true);
+            mu[1] = 1;
+            for (int64 i = 2; i <= u; ++i) {
+                if (is_prime[i]) {
+                    primes.push_back(static_cast<int>(i));
+                    mu[i] = -1;
+                }
+                for (size_t j = 0; j < primes.size() && i * primes[j] <= u; ++j) {
+                    int p = primes[j];
+                    is_prime[i * p] = false;
+                    if (i % p == 0) {
+                        mu[i * p] = 0;
+                        break;
+                    } else {
+                        mu[i * p] = -mu[i];
+                    }
+                }
+            }
+            int run_sum = 0;
+            for (int64 i = 1; i <= u; ++i) {
+                run_sum += mu[i];
+                M[i - 1] = run_sum;
+            }
+        } else {
+            M[0] = 1;
+        }
 
         auto solve_block = [&](int start_idx, int end_idx) {
             #ifdef _OPENMP
@@ -124,9 +158,20 @@ public:
                 int64 k_max = v / (K + 1);
                 int total = 1;
 
-                // Part 1: Dense k
-                for (int64 k = 2; k <= k_max; ++k) {
-                    total -= M[qs.tau(v / k)];
+                if (v <= S) {
+                    for (int64 k = 2; k <= k_max; ++k) {
+                        total -= M[(v / k) - 1];
+                    }
+                } else {
+                    int64 k_split = v / (S + 1);
+                    int64 k_lim = std::min(k_max, k_split);
+                    for (int64 k = 2; k <= k_lim; ++k) {
+                        int64 q = v / k;
+                        total -= M[n - static_cast<int>(X / q)];
+                    }
+                    for (int64 k = k_lim + 1; k <= k_max; ++k) {
+                        total -= M[(v / k) - 1];
+                    }
                 }
 
                 // Part 2: Dense q (Sequential memory traversal M[0...K-1])
@@ -143,36 +188,13 @@ public:
             }
         };
 
-        // Base case: small values sequentially
-        int base_idx = 0;
-        while (base_idx < n && qs.V[base_idx] <= 1000) {
-            int64 v = qs.V[base_idx];
-            if (v == 1) {
-                M[base_idx] = 1;
-            } else {
-                int64 K = integer_sqrt(v);
-                int64 k_max = v / (K + 1);
-                int total = 1;
-
-                for (int64 k = 2; k <= k_max; ++k) {
-                    total -= M[qs.tau(v / k)];
-                }
-
-                int64 q = 1;
-                int64 v_div_q = v;
-                for (; q <= K; ++q) {
-                    int64 v_div_q_next = v / (q + 1);
-                    int64 count = v_div_q - v_div_q_next;
-                    total -= static_cast<int>(count * M[q - 1]);
-                    v_div_q = v_div_q_next;
-                }
-                M[base_idx] = total;
-            }
-            ++base_idx;
+        // Find initial starting index beyond pre-sieved range
+        int cur_start = 0;
+        while (cur_start < n && qs.V[cur_start] <= u) {
+            ++cur_start;
         }
 
         // Lock-free doubling stages
-        int cur_start = base_idx;
         while (cur_start < n) {
             int64 max_safe = qs.V[cur_start - 1] * 2;
             int cur_end = cur_start;
@@ -197,7 +219,40 @@ public:
         if (X < 1) return 0;
         QuotientSpace qs(X);
         const int n = qs.n;
+        const int64 S = qs.S;
         std::vector<int128> Phi(n, 0);
+
+        int64 u = std::min(S, 20000000LL);
+        if (u >= 2) {
+            std::vector<int> phi(u + 1);
+            std::vector<int> primes;
+            primes.reserve(static_cast<size_t>(u / 10));
+            std::vector<bool> is_prime(u + 1, true);
+            phi[1] = 1;
+            for (int64 i = 2; i <= u; ++i) {
+                if (is_prime[i]) {
+                    primes.push_back(static_cast<int>(i));
+                    phi[i] = static_cast<int>(i - 1);
+                }
+                for (size_t j = 0; j < primes.size() && i * primes[j] <= u; ++j) {
+                    int p = primes[j];
+                    is_prime[i * p] = false;
+                    if (i % p == 0) {
+                        phi[i * p] = phi[i] * p;
+                        break;
+                    } else {
+                        phi[i * p] = phi[i] * (p - 1);
+                    }
+                }
+            }
+            int128 run_sum = 0;
+            for (int64 i = 1; i <= u; ++i) {
+                run_sum += phi[i];
+                Phi[i - 1] = run_sum;
+            }
+        } else {
+            Phi[0] = 1;
+        }
 
         auto solve_block = [&](int start_idx, int end_idx) {
             #ifdef _OPENMP
@@ -209,8 +264,20 @@ public:
                 int64 k_max = v / (K + 1);
                 int128 total = static_cast<int128>(v) * (v + 1) / 2;
 
-                for (int64 k = 2; k <= k_max; ++k) {
-                    total -= Phi[qs.tau(v / k)];
+                if (v <= S) {
+                    for (int64 k = 2; k <= k_max; ++k) {
+                        total -= Phi[(v / k) - 1];
+                    }
+                } else {
+                    int64 k_split = v / (S + 1);
+                    int64 k_lim = std::min(k_max, k_split);
+                    for (int64 k = 2; k <= k_lim; ++k) {
+                        int64 q = v / k;
+                        total -= Phi[n - static_cast<int>(X / q)];
+                    }
+                    for (int64 k = k_lim + 1; k <= k_max; ++k) {
+                        total -= Phi[(v / k) - 1];
+                    }
                 }
 
                 int64 q = 1;
@@ -226,36 +293,12 @@ public:
             }
         };
 
-        // Base case: small values
-        int base_idx = 0;
-        while (base_idx < n && qs.V[base_idx] <= 1000) {
-            int64 v = qs.V[base_idx];
-            if (v == 1) {
-                Phi[base_idx] = 1;
-            } else {
-                int64 K = integer_sqrt(v);
-                int64 k_max = v / (K + 1);
-                int128 total = static_cast<int128>(v) * (v + 1) / 2;
-
-                for (int64 k = 2; k <= k_max; ++k) {
-                    total -= Phi[qs.tau(v / k)];
-                }
-
-                int64 q = 1;
-                int64 v_div_q = v;
-                for (; q <= K; ++q) {
-                    int64 v_div_q_next = v / (q + 1);
-                    int64 count = v_div_q - v_div_q_next;
-                    total -= static_cast<int128>(count) * Phi[q - 1];
-                    v_div_q = v_div_q_next;
-                }
-                Phi[base_idx] = total;
-            }
-            ++base_idx;
+        int cur_start = 0;
+        while (cur_start < n && qs.V[cur_start] <= u) {
+            ++cur_start;
         }
 
         // Lock-free doubling stages
-        int cur_start = base_idx;
         while (cur_start < n) {
             int64 max_safe = qs.V[cur_start - 1] * 2;
             int cur_end = cur_start;
@@ -280,7 +323,36 @@ public:
         if (X < 1) return 0;
         QuotientSpace qs(X);
         const int n = qs.n;
+        const int64 S = qs.S;
         std::vector<int> L(n, 0);
+
+        int64 u = std::min(S, 20000000LL);
+        if (u >= 2) {
+            std::vector<int8_t> lmb(u + 1);
+            std::vector<int> primes;
+            primes.reserve(static_cast<size_t>(u / 10));
+            std::vector<bool> is_prime(u + 1, true);
+            lmb[1] = 1;
+            for (int64 i = 2; i <= u; ++i) {
+                if (is_prime[i]) {
+                    primes.push_back(static_cast<int>(i));
+                    lmb[i] = -1;
+                }
+                for (size_t j = 0; j < primes.size() && i * primes[j] <= u; ++j) {
+                    int p = primes[j];
+                    is_prime[i * p] = false;
+                    lmb[i * p] = -lmb[i];
+                    if (i % p == 0) break;
+                }
+            }
+            int run_sum = 0;
+            for (int64 i = 1; i <= u; ++i) {
+                run_sum += lmb[i];
+                L[i - 1] = run_sum;
+            }
+        } else {
+            L[0] = 1;
+        }
 
         auto solve_block = [&](int start_idx, int end_idx) {
             #ifdef _OPENMP
@@ -292,8 +364,20 @@ public:
                 int64 k_max = v / (K + 1);
                 int total = static_cast<int>(integer_sqrt(v));
 
-                for (int64 k = 2; k <= k_max; ++k) {
-                    total -= L[qs.tau(v / k)];
+                if (v <= S) {
+                    for (int64 k = 2; k <= k_max; ++k) {
+                        total -= L[(v / k) - 1];
+                    }
+                } else {
+                    int64 k_split = v / (S + 1);
+                    int64 k_lim = std::min(k_max, k_split);
+                    for (int64 k = 2; k <= k_lim; ++k) {
+                        int64 q = v / k;
+                        total -= L[n - static_cast<int>(X / q)];
+                    }
+                    for (int64 k = k_lim + 1; k <= k_max; ++k) {
+                        total -= L[(v / k) - 1];
+                    }
                 }
 
                 int64 q = 1;
@@ -309,36 +393,12 @@ public:
             }
         };
 
-        // Base case
-        int base_idx = 0;
-        while (base_idx < n && qs.V[base_idx] <= 1000) {
-            int64 v = qs.V[base_idx];
-            if (v == 1) {
-                L[base_idx] = 1;
-            } else {
-                int64 K = integer_sqrt(v);
-                int64 k_max = v / (K + 1);
-                int total = static_cast<int>(integer_sqrt(v));
-
-                for (int64 k = 2; k <= k_max; ++k) {
-                    total -= L[qs.tau(v / k)];
-                }
-
-                int64 q = 1;
-                int64 v_div_q = v;
-                for (; q <= K; ++q) {
-                    int64 v_div_q_next = v / (q + 1);
-                    int64 count = v_div_q - v_div_q_next;
-                    total -= static_cast<int>(count * L[q - 1]);
-                    v_div_q = v_div_q_next;
-                }
-                L[base_idx] = total;
-            }
-            ++base_idx;
+        int cur_start = 0;
+        while (cur_start < n && qs.V[cur_start] <= u) {
+            ++cur_start;
         }
 
         // Doubling stages
-        int cur_start = base_idx;
         while (cur_start < n) {
             int64 max_safe = qs.V[cur_start - 1] * 2;
             int cur_end = cur_start;
