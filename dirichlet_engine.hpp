@@ -150,7 +150,7 @@ public:
 
         auto solve_block = [&](int start_idx, int end_idx) {
             #ifdef _OPENMP
-            #pragma omp parallel for schedule(dynamic, 64) num_threads(num_threads > 0 ? num_threads : omp_get_max_threads()) if(num_threads != 1)
+            #pragma omp parallel for schedule(guided) num_threads(num_threads > 0 ? num_threads : omp_get_max_threads()) if(num_threads != 1)
             #endif
             for (int i = start_idx; i < end_idx; ++i) {
                 int64 v = qs.V[i];
@@ -256,7 +256,7 @@ public:
 
         auto solve_block = [&](int start_idx, int end_idx) {
             #ifdef _OPENMP
-            #pragma omp parallel for schedule(dynamic, 64) num_threads(num_threads > 0 ? num_threads : omp_get_max_threads()) if(num_threads != 1)
+            #pragma omp parallel for schedule(guided) num_threads(num_threads > 0 ? num_threads : omp_get_max_threads()) if(num_threads != 1)
             #endif
             for (int i = start_idx; i < end_idx; ++i) {
                 int64 v = qs.V[i];
@@ -356,7 +356,7 @@ public:
 
         auto solve_block = [&](int start_idx, int end_idx) {
             #ifdef _OPENMP
-            #pragma omp parallel for schedule(dynamic, 64) num_threads(num_threads > 0 ? num_threads : omp_get_max_threads()) if(num_threads != 1)
+            #pragma omp parallel for schedule(guided) num_threads(num_threads > 0 ? num_threads : omp_get_max_threads()) if(num_threads != 1)
             #endif
             for (int i = start_idx; i < end_idx; ++i) {
                 int64 v = qs.V[i];

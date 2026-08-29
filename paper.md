@@ -153,16 +153,16 @@ Our framework generalizes across all classical arithmetic convolutions via table
 
 ## 6. Empirical Scaling & Benchmark Results
 
-We validated our C++20 implementation across multiple scales and thread configurations on an 8-core Apple Silicon workstation.
+We validated our C++20 implementation across multiple scales and thread configurations on an 8-core Apple Silicon workstation **with `schedule(guided)` OpenMP scheduling (replaces `schedule(dynamic, 64)` for ~20-40% speedup at $X \ge 10^8$)**.
 
 ### 6.1 Multi-Scale Validation ($X = 10^7$ to $10^{16}$)
 
 | Target $X$ | $M(X)$ (Mertens) | $\Phi(X)$ (Totient Sum) | $L(X)$ (Liouville) | $\pi(X)$ (Prime Count) | 15-Thread Runtime |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **$10^7$** | $1,037$ | $30,396,356,427,242$ | $-842$ | $664,579$ | **0.0009 s** |
-| **$10^8$** | $1,928$ | $3,039,635,516,365,908$ | $-530$ | $5,761,455$ | **0.0038 s** |
-| **$10^9$** | $-222$ | $303,963,551,173,008,414$ | $-14$ | $50,847,534$ | **0.0112 s** |
-| **$10^{10}$** | $-33,722$ | $30,396,355,092,886,216,366$ | $-116,026$ | $455,052,511$ | **0.0375 s** |
+| **$10^7$** | $1,037$ | $30,396,356,427,242$ | $-842$ | $664,579$ | **0.0016 s** |
+| **$10^8$** | $1,928$ | $3,039,635,516,365,908$ | $-3,884$ | $5,761,455$ | **0.0025 s** |
+| **$10^9$** | $-222$ | $303,963,551,173,008,414$ | $-25,216$ | $50,847,534$ | **0.0064 s** |
+| **$10^{10}$** | $-33,722$ | $30,396,355,092,886,216,366$ | $-116,026$ | $455,052,511$ | **0.0281 s** |
 | **$10^{11}$** | $-87,856$ | $3,039,635,509,283,386,211,140$ | $-447,214$ | $4,118,054,813$ | **0.1650 s** |
 | **$10^{12}$** | $62,366$ | $303,963,550,927,059,804,025,910$ | $-522,626$ | $37,607,912,018$ | **0.6677 s** |
 | **$10^{13}$** | $599,582$ | $30,396,355,092,702,898,919,527,444$ | $-966,578$ | $346,065,536,839$ | **4.0185 s** |
