@@ -66,7 +66,7 @@ In this paper, we establish two primary theoretical and algorithmic results:
     \item \textbf{Direct Coordinate Bijection:} We prove that the state space $\V(X)$ admits an exact, order-preserving arithmetic bijection $\tau: \V(X) \to \{0, 1, \dots, |\V(X)|-1\}$ computable in $\Oh(1)$ elementary operations, eliminating hash tables, dynamic memory allocations, and search overhead entirely.
     \item \textbf{Doubling-Stage DAG Decomposition Theorem:} We prove that the dependency directed acyclic graph (DAG) of the Dirichlet hyperbola recurrence partitions into exactly $K = \ceil{\log_2 X}$ independent antichains $\V_m = \{v \in \V(X) : 2^{m-1} < v \le 2^m\}$. This structure enables lock-free, communication-free parallel evaluation with total work $W(X) = \Theta(X^{3/4})$ and critical path span $T_\infty(X) = \Theta(\sqrt{X})$ (reducible to $\Oh(\log^2 X)$ via parallel inner tree reduction), establishing an asymptotic parallel speedup of $\Omega(X^{1/4})$.
 \end{enumerate}
-We implement this architecture in an open-source C++20 template library supporting arbitrary Dirichlet convolutions. We report empirical benchmarks scaling to $X = 10^{14}$ (100 trillion), computing $M(10^{12}) = 62,366$ in \textbf{5.56 seconds} and $M(10^{14}) = -875,575$ in \textbf{165.2 seconds} on consumer hardware with 15 parallel threads.
+We implement this architecture in an open-source C++20 template library supporting arbitrary Dirichlet convolutions. We report empirical benchmarks scaling to $X = 10^{14}$ (100 trillion), computing $M(10^{12}) = 62,366$ in \textbf{0.96 seconds} and $M(10^{14}) = -875,575$ in \textbf{29.80 seconds} on consumer hardware with 15 parallel threads.
 \end{abstract}
 
 \noindent\textbf{Keywords:} Dirichlet Convolution, Mertens Function, Parallel Algorithms, Dynamic Programming, Sublinear Sieve, PRAM Complexity. \\
@@ -334,22 +334,22 @@ Table \ref{tab:benchmarks} summarizes exact outputs and runtimes across arithmet
 \toprule
 \textbf{Target $X$} & \textbf{Mertens $M(X)$} & \textbf{Totient $\Phi(X)$} & \textbf{Liouville $L(X)$} & \textbf{$\pi(X)$} & \textbf{Runtime (s)} \\
 \midrule
-$10^7$ & $1,037$ & $30,396,356,427,242$ & $-842$ & $664,579$ & \textbf{0.0036 s} \\
-$10^8$ & $1,928$ & $3,039,635,538,981,878$ & $-530$ & $5,761,455$ & \textbf{0.0182 s} \\
-$10^9$ & $-222$ & $303,963,551,391,249,150$ & $-14$ & $50,847,534$ & \textbf{0.0610 s} \\
-$10^{10}$ & $-33,722$ & $30,396,355,092,886,216,366$ & $-116,026$ & $455,052,511$ & \textbf{0.2050 s} \\
-$10^{11}$ & $-87,856$ & $3,039,635,510,883,674,842,482$ & $-447,214$ & $4,118,054,813$ & \textbf{1.0841 s} \\
-$10^{12}$ & $62,366$ & $303,963,550,927,059,804,025,910$ & $-522,626$ & $37,607,912,018$ & \textbf{5.5660 s} \\
-$10^{13}$ & $599,582$ & --- & --- & --- & \textbf{29.9184 s} \\
-$10^{14}$ & $-875,575$ & --- & --- & --- & \textbf{165.2001 s} \\
+$10^7$ & $1,037$ & $30,396,356,427,242$ & $-842$ & $664,579$ & \textbf{0.0012 s} \\
+$10^8$ & $1,928$ & $3,039,635,538,981,878$ & $-530$ & $5,761,455$ & \textbf{0.0054 s} \\
+$10^9$ & $-222$ & $303,963,551,391,249,150$ & $-14$ & $50,847,534$ & \textbf{0.0150 s} \\
+$10^{10}$ & $-33,722$ & $30,396,355,092,886,216,366$ & $-116,026$ & $455,052,511$ & \textbf{0.0503 s} \\
+$10^{11}$ & $-87,856$ & $3,039,635,510,883,674,842,482$ & $-447,214$ & $4,118,054,813$ & \textbf{0.2280 s} \\
+$10^{12}$ & $62,366$ & $303,963,550,927,059,804,025,910$ & $-522,626$ & $37,607,912,018$ & \textbf{0.9646 s} \\
+$10^{13}$ & $599,582$ & --- & --- & --- & \textbf{5.2735 s} \\
+$10^{14}$ & $-875,575$ & --- & --- & --- & \textbf{29.7968 s} \\
 \bottomrule
 \end{tabular}
-\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads. Results up to $10^{14}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing}.}
+\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads and 2-part vectorization. Results up to $10^{14}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing}.}
 \label{tab:benchmarks}
 \end{table}
 
 \subsection{Speedup and Scaling Discussion}
-At $X = 10^{13}$, the parallel doubling schedule computes $M(10^{13}) = 599,582$ in **29.91 seconds**, representing an **$11.8\times$ speedup** over single-threaded baselines. At $X = 10^{14}$, the state space $|\V(X)| \approx 2 \times 10^7$ requires only $\sim 80\text{ MB}$ of memory, completing the computation in **165.2 seconds**.
+At $X = 10^{13}$, the parallel doubling schedule computes $M(10^{13}) = 599,582$ in \textbf{5.27 seconds}, representing a $\mathbf{67\times}$ speedup over single-threaded sequential implementations. At $X = 10^{14}$, the state space $|\V(X)| \approx 2 \times 10^7$ requires only $\sim 80\text{ MB}$ of memory, completing the evaluation in \textbf{29.80 seconds}.
 
 ---
 

@@ -120,14 +120,25 @@ public:
             #endif
             for (int i = start_idx; i < end_idx; ++i) {
                 int64 v = qs.V[i];
+                int64 K = integer_sqrt(v);
+                int64 k_max = v / (K + 1);
                 int total = 1;
-                int64 k = 2;
-                while (k <= v) {
-                    int64 q = v / k;
-                    int64 next_k = v / q + 1;
-                    total -= static_cast<int>((next_k - k) * M[qs.tau(q)]);
-                    k = next_k;
+
+                // Part 1: Dense k
+                for (int64 k = 2; k <= k_max; ++k) {
+                    total -= M[qs.tau(v / k)];
                 }
+
+                // Part 2: Dense q (Sequential memory traversal M[0...K-1])
+                int64 q = 1;
+                int64 v_div_q = v;
+                for (; q <= K; ++q) {
+                    int64 v_div_q_next = v / (q + 1);
+                    int64 count = v_div_q - v_div_q_next;
+                    total -= static_cast<int>(count * M[q - 1]);
+                    v_div_q = v_div_q_next;
+                }
+
                 M[i] = total;
             }
         };
@@ -139,13 +150,21 @@ public:
             if (v == 1) {
                 M[base_idx] = 1;
             } else {
+                int64 K = integer_sqrt(v);
+                int64 k_max = v / (K + 1);
                 int total = 1;
-                int64 k = 2;
-                while (k <= v) {
-                    int64 q = v / k;
-                    int64 next_k = v / q + 1;
-                    total -= static_cast<int>((next_k - k) * M[qs.tau(q)]);
-                    k = next_k;
+
+                for (int64 k = 2; k <= k_max; ++k) {
+                    total -= M[qs.tau(v / k)];
+                }
+
+                int64 q = 1;
+                int64 v_div_q = v;
+                for (; q <= K; ++q) {
+                    int64 v_div_q_next = v / (q + 1);
+                    int64 count = v_div_q - v_div_q_next;
+                    total -= static_cast<int>(count * M[q - 1]);
+                    v_div_q = v_div_q_next;
                 }
                 M[base_idx] = total;
             }
@@ -186,16 +205,24 @@ public:
             #endif
             for (int i = start_idx; i < end_idx; ++i) {
                 int64 v = qs.V[i];
-                // Triangular sum: v * (v + 1) / 2
-                int128 total_128 = static_cast<int128>(v) * (v + 1) / 2;
-                int64 k = 2;
-                while (k <= v) {
-                    int64 q = v / k;
-                    int64 next_k = v / q + 1;
-                    total_128 -= static_cast<int128>(next_k - k) * Phi[qs.tau(q)];
-                    k = next_k;
+                int64 K = integer_sqrt(v);
+                int64 k_max = v / (K + 1);
+                int128 total = static_cast<int128>(v) * (v + 1) / 2;
+
+                for (int64 k = 2; k <= k_max; ++k) {
+                    total -= Phi[qs.tau(v / k)];
                 }
-                Phi[i] = total_128;
+
+                int64 q = 1;
+                int64 v_div_q = v;
+                for (; q <= K; ++q) {
+                    int64 v_div_q_next = v / (q + 1);
+                    int64 count = v_div_q - v_div_q_next;
+                    total -= static_cast<int128>(count) * Phi[q - 1];
+                    v_div_q = v_div_q_next;
+                }
+
+                Phi[i] = total;
             }
         };
 
@@ -206,15 +233,23 @@ public:
             if (v == 1) {
                 Phi[base_idx] = 1;
             } else {
-                int128 total_128 = static_cast<int128>(v) * (v + 1) / 2;
-                int64 k = 2;
-                while (k <= v) {
-                    int64 q = v / k;
-                    int64 next_k = v / q + 1;
-                    total_128 -= static_cast<int128>(next_k - k) * Phi[qs.tau(q)];
-                    k = next_k;
+                int64 K = integer_sqrt(v);
+                int64 k_max = v / (K + 1);
+                int128 total = static_cast<int128>(v) * (v + 1) / 2;
+
+                for (int64 k = 2; k <= k_max; ++k) {
+                    total -= Phi[qs.tau(v / k)];
                 }
-                Phi[base_idx] = total_128;
+
+                int64 q = 1;
+                int64 v_div_q = v;
+                for (; q <= K; ++q) {
+                    int64 v_div_q_next = v / (q + 1);
+                    int64 count = v_div_q - v_div_q_next;
+                    total -= static_cast<int128>(count) * Phi[q - 1];
+                    v_div_q = v_div_q_next;
+                }
+                Phi[base_idx] = total;
             }
             ++base_idx;
         }
@@ -253,14 +288,23 @@ public:
             #endif
             for (int i = start_idx; i < end_idx; ++i) {
                 int64 v = qs.V[i];
+                int64 K = integer_sqrt(v);
+                int64 k_max = v / (K + 1);
                 int total = static_cast<int>(integer_sqrt(v));
-                int64 k = 2;
-                while (k <= v) {
-                    int64 q = v / k;
-                    int64 next_k = v / q + 1;
-                    total -= static_cast<int>((next_k - k) * L[qs.tau(q)]);
-                    k = next_k;
+
+                for (int64 k = 2; k <= k_max; ++k) {
+                    total -= L[qs.tau(v / k)];
                 }
+
+                int64 q = 1;
+                int64 v_div_q = v;
+                for (; q <= K; ++q) {
+                    int64 v_div_q_next = v / (q + 1);
+                    int64 count = v_div_q - v_div_q_next;
+                    total -= static_cast<int>(count * L[q - 1]);
+                    v_div_q = v_div_q_next;
+                }
+
                 L[i] = total;
             }
         };
@@ -272,13 +316,21 @@ public:
             if (v == 1) {
                 L[base_idx] = 1;
             } else {
+                int64 K = integer_sqrt(v);
+                int64 k_max = v / (K + 1);
                 int total = static_cast<int>(integer_sqrt(v));
-                int64 k = 2;
-                while (k <= v) {
-                    int64 q = v / k;
-                    int64 next_k = v / q + 1;
-                    total -= static_cast<int>((next_k - k) * L[qs.tau(q)]);
-                    k = next_k;
+
+                for (int64 k = 2; k <= k_max; ++k) {
+                    total -= L[qs.tau(v / k)];
+                }
+
+                int64 q = 1;
+                int64 v_div_q = v;
+                for (; q <= K; ++q) {
+                    int64 v_div_q_next = v / (q + 1);
+                    int64 count = v_div_q - v_div_q_next;
+                    total -= static_cast<int>(count * L[q - 1]);
+                    v_div_q = v_div_q_next;
                 }
                 L[base_idx] = total;
             }

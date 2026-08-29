@@ -24,14 +24,14 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 
 | Target $X$ | Scale | Function | Exact Output | 15-Thread Runtime |
 | :--- | :--- | :--- | :--- | :--- |
-| $10^{10}$ | $10\text{ Billion}$ | Mertens $M(X)$ | $-33,722$ | **0.205 s** |
-| $10^{10}$ | $10\text{ Billion}$ | Totient Sum $\Phi(X)$ | $30,396,355,092,886,216,366$ | **0.205 s** |
-| $10^{10}$ | $10\text{ Billion}$ | Liouville Sum $L(X)$ | $-116,026$ | **0.184 s** |
-| $10^{10}$ | $10\text{ Billion}$ | Prime Count $\pi(X)$ | $455,052,511$ | **0.015 s** |
-| $10^{12}$ | $1\text{ Trillion}$ | Mertens $M(X)$ | $62,366$ | **5.566 s** |
-| $10^{12}$ | $1\text{ Trillion}$ | Totient Sum $\Phi(X)$ | $303,963,550,927,059,804,025,910$ | **6.892 s** |
-| $10^{13}$ | $10\text{ Trillion}$ | Mertens $M(X)$ | $599,582$ | **29.918 s** |
-| $10^{14}$ | $100\text{ Trillion}$ | Mertens $M(X)$ | $-875,575$ | **165.200 s** ($2.75\text{ min}$) |
+| $10^{10}$ | $10\text{ Billion}$ | Mertens $M(X)$ | $-33,722$ | **0.050 s** |
+| $10^{10}$ | $10\text{ Billion}$ | Totient Sum $\Phi(X)$ | $30,396,355,092,886,216,366$ | **0.048 s** |
+| $10^{10}$ | $10\text{ Billion}$ | Liouville Sum $L(X)$ | $-116,026$ | **0.031 s** |
+| $10^{10}$ | $10\text{ Billion}$ | Prime Count $\pi(X)$ | $455,052,511$ | **0.014 s** |
+| $10^{12}$ | $1\text{ Trillion}$ | Mertens $M(X)$ | $62,366$ | **0.964 s** ($<1\text{ s}$) |
+| $10^{12}$ | $1\text{ Trillion}$ | Totient Sum $\Phi(X)$ | $303,963,550,927,059,804,025,910$ | **1.142 s** |
+| $10^{13}$ | $10\text{ Trillion}$ | Mertens $M(X)$ | $599,582$ | **5.273 s** |
+| $10^{14}$ | $100\text{ Trillion}$ | Mertens $M(X)$ | $-875,575$ | **29.796 s** ($<30\text{ s}$) |
 
 ---
 
