@@ -330,9 +330,10 @@ Table \ref{tab:benchmarks} summarizes exact outputs and runtimes across arithmet
 \begin{table}[htbp]
 \centering
 \small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lllllr@{}}
 \toprule
-\textbf{Target $X$} & \textbf{Mertens $M(X)$} & \textbf{Totient $\Phi(X)$} & \textbf{Liouville $L(X)$} & \textbf{$\pi(X)$} & \textbf{Runtime (s)} \\
+\textbf{Target $X$} & \textbf{Mertens $M(X)$} & \textbf{Totient $\Phi(X)$} & \textbf{Liouville $L(X)$} & \textbf{$\pi(X)$} & \textbf{Mertens Time} \\
 \midrule
 $10^7$ & $1,037$ & $30,396,356,427,242$ & $-842$ & $664,579$ & \textbf{0.0012 s} \\
 $10^8$ & $1,928$ & $3,039,635,538,981,878$ & $-530$ & $5,761,455$ & \textbf{0.0054 s} \\
@@ -340,12 +341,13 @@ $10^9$ & $-222$ & $303,963,551,391,249,150$ & $-14$ & $50,847,534$ & \textbf{0.0
 $10^{10}$ & $-33,722$ & $30,396,355,092,886,216,366$ & $-116,026$ & $455,052,511$ & \textbf{0.0503 s} \\
 $10^{11}$ & $-87,856$ & $3,039,635,510,883,674,842,482$ & $-447,214$ & $4,118,054,813$ & \textbf{0.2280 s} \\
 $10^{12}$ & $62,366$ & $303,963,550,927,059,804,025,910$ & $-522,626$ & $37,607,912,018$ & \textbf{0.9646 s} \\
-$10^{13}$ & $599,582$ & --- & --- & --- & \textbf{5.2735 s} \\
-$10^{14}$ & $-875,575$ & --- & --- & --- & \textbf{29.7968 s} \\
-$10^{15}$ & $-3,216,373$ & --- & --- & --- & \textbf{160.1818 s} \\
-$10^{16}$ & $-3,195,437$ & --- & --- & --- & \textbf{927.8322 s} \\
+$10^{13}$ & $599,582$ & $30,396,355,092,702,898,919,527,444$ & $-966,578$ & $346,065,536,839$ & \textbf{5.1809 s} \\
+$10^{14}$ & $-875,575$ & $3,039,635,509,270,144,893,910,357,854$ & $-7,424,752$ & $3,204,941,750,802$ & \textbf{29.7968 s} \\
+$10^{15}$ & $-3,216,373$ & $303,963,550,927,013,509,478,708,835,152$ & $-29,445,104$ & $29,844,570,422,669$ & \textbf{160.1818 s} \\
+$10^{16}$ & $-3,195,437$ & --- & --- & $279,238,341,033,925$ & \textbf{927.8322 s} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads and 2-part vectorization. Results up to $10^{16}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing}.}
 \label{tab:benchmarks}
 \end{table}
