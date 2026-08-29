@@ -61,15 +61,7 @@ int main(int argc, char* argv[]) {
         run_benchmark("Liouville Sum L", [&]() { return DirichletEngine::compute_liouville_sum(X, threads); });
     }
     if (mode == "all" || mode == "prime_pi") {
-        // Run on smaller X if X is too large for prime_pi demo
-        int64 pi_X = (X > 10000000000LL) ? 10000000000LL : X;
-        auto t0 = std::chrono::high_resolution_clock::now();
-        auto res = DirichletEngine::compute_prime_pi(pi_X);
-        auto t1 = std::chrono::high_resolution_clock::now();
-        double elapsed = std::chrono::duration<double>(t1 - t0).count();
-        std::cout << std::left << std::setw(28) << ("PrimeCount pi(" + std::to_string(pi_X) + ")") 
-                  << " = " << std::right << std::setw(22) << res 
-                  << "  [" << std::fixed << std::setprecision(4) << elapsed << " s]\n";
+        run_benchmark("PrimeCount pi", [&]() { return DirichletEngine::compute_prime_pi(X); });
     }
     if (mode == "all" || mode == "divisor") {
         run_benchmark("Divisor Sum D", [&]() { return DirichletEngine::compute_divisor_sum(X); });
