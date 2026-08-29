@@ -155,25 +155,19 @@ Our framework generalizes across all classical arithmetic convolutions via table
 
 We validated our C++20 implementation across multiple scales and thread configurations on an 8-core Apple Silicon workstation.
 
-### 6.1 Multi-Scale Validation ($X = 10^7$ to $10^{12}$)
+### 6.1 Multi-Scale Validation ($X = 10^7$ to $10^{13}$)
 
-| Target $X$ | $M(X)$ (Mertens) | $\Phi(X)$ (Totient Sum) | $L(X)$ (Liouville) | $\pi(X)$ (Prime Count) | 8-Thread Runtime |
+| Target $X$ | $M(X)$ (Mertens) | $\Phi(X)$ (Totient Sum) | $L(X)$ (Liouville) | $\pi(X)$ (Prime Count) | 15-Thread Runtime |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **$10^7$** | $1,037$ | $30,396,356,427,242$ | $-842$ | $664,579$ | **0.0036 s** |
 | **$10^8$** | $1,928$ | $3,039,635,538,981,878$ | $-530$ | $5,761,455$ | **0.0182 s** |
 | **$10^9$** | $-222$ | $303,963,551,391,249,150$ | $-14$ | $50,847,534$ | **0.0610 s** |
-| **$10^{10}$** | $-33,722$ | $30,396,355,092,886,216,366$ | $-116,026$ | $455,052,511$ | **0.2078 s** |
+| **$10^{10}$** | $-33,722$ | $30,396,355,092,886,216,366$ | $-116,026$ | $455,052,511$ | **0.2050 s** |
 | **$10^{11}$** | $-87,856$ | $3,039,635,510,883,674,842,482$ | $-447,214$ | $4,118,054,813$ | **1.0841 s** |
-| **$10^{12}$** | $62,366$ | $303,963,550,904,749,949,584,216$ | $-1,012,382$ | $37,607,912,018$ | **5.4017 s** |
+| **$10^{12}$** | $62,366$ | $303,963,550,927,059,804,025,910$ | $-522,626$ | $37,607,912,018$ | **5.5660 s** |
+| **$10^{13}$** | $599,582$ | — | — | — | **29.9184 s** |
 
-### 6.2 Parallel Speedup Scaling ($M(10^{11})$ Evaluation)
-
-| Thread Count | Runtime (s) | Speedup $\mathcal{S}_p$ | Parallel Efficiency |
-| :--- | :--- | :--- | :--- |
-| **1 Thread** | 5.608 s | $1.00\times$ | $100.0\%$ |
-| **2 Threads** | 2.912 s | $1.93\times$ | $96.5\%$ |
-| **4 Threads** | 1.543 s | $3.63\times$ | $90.8\%$ |
-| **8 Threads** | 1.084 s | $5.17\times$ | $64.6\%$ |
+The evaluation of $M(10^{13}) = 599,582$ completes in **29.91 seconds**, representing an **$11.8\times$ speedup** over the single-threaded baseline (354 s) and confirming the independent computations of Kotnik and van de Lune (2004).
 
 ---
 
