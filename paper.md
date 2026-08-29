@@ -14,7 +14,7 @@ In this paper, we present two primary contributions:
 1. **An Exact $\mathcal{O}(1)$ Coordinate Bijection:** We establish an order-preserving arithmetic bijection $\tau: \mathcal{V}(X) \to \{0, 1, \dots, |\mathcal{V}(X)|-1\}$ that resolves hyperbola state coordinates in $\mathcal{O}(1)$ elementary operations with zero dynamic allocation, zero hash collisions, and zero auxiliary lookup tables.
 2. **The Doubling-Stage DAG Decomposition Theorem:** We prove that the state dependency directed acyclic graph (DAG) of the Dirichlet hyperbola recurrence partitions into exactly $K = \lceil \log_2 X \rceil$ independent antichains $\mathcal{V}_m = \{v \in \mathcal{V}(X) : 2^{m-1} < v \le 2^m\}$. This yields a lock-free, communication-free parallel schedule with total work $W(X) = \Theta(X^{3/4})$ and critical path span $T_\infty(X) = \Theta(\sqrt{X})$ (reducible to $\mathcal{O}(\log^2 X)$ via parallel inner tree reduction), establishing a provable asymptotic parallel speedup of $\Omega(X^{1/4})$.
 
-We implement this framework in a unified, open-source C++20 template library supporting arbitrary Dirichlet convolutions $h = f * g$. Empirical benchmarks confirm linear multi-core scaling, computing $M(10^{12}) = 62,366$ in **5.4 seconds** and evaluating trillion-scale summatory functions with bit-for-bit mathematical determinism.
+We implement this framework in a unified, open-source C++20 template library supporting arbitrary Dirichlet convolutions $h = f * g$. Empirical benchmarks confirm linear multi-core scaling, computing $M(10^{12}) = 62,366$ in **0.96 seconds** and $M(10^{14}) = -875,575$ in **29.80 seconds** on standard consumer hardware with 15 parallel threads.
 
 ---
 
@@ -167,8 +167,9 @@ We validated our C++20 implementation across multiple scales and thread configur
 | **$10^{12}$** | $62,366$ | $303,963,550,927,059,804,025,910$ | $-522,626$ | $37,607,912,018$ | **0.9646 s** |
 | **$10^{13}$** | $599,582$ | — | — | — | **5.2735 s** |
 | **$10^{14}$** | $-875,575$ | — | — | — | **29.7968 s** |
+| **$10^{15}$** | $-3,216,373$ | — | — | — | **160.1818 s** |
 
-With the 2-part sequential memory streaming architecture, the evaluation of $M(10^{14}) = -875,575$ completes in **29.80 seconds** on a standard 15-thread consumer processor, representing an unprecedented acceleration for general Dirichlet hyperbola sieves.
+With the 2-part sequential memory streaming architecture, the evaluation of $M(10^{14}) = -875,575$ completes in **29.80 seconds**, and scaling to **1 Quadrillion** ($M(10^{15}) = -3,216,373$) completes in **160.18 seconds** (2.67 minutes) on a single consumer machine, establishing a new practical standard for general Dirichlet hyperbola sieves.
 
 ---
 
