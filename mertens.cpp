@@ -1,115 +1,83 @@
 #include <iostream>
-#include <vector>
-#include <cmath>
+#include <iomanip>
+#include <string>
 #include <chrono>
-#include <algorithm>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include "dirichlet_engine.hpp"
 
-using int64 = long long;
-
-/**
- * Computes the Mertens function M(X) = sum_{n=1}^X mu(n) using the Dirichlet hyperbola DP.
- *
- * Direct O(1) indexing:
- *   For state q in V (sorted ascending):
- *     if q <= S: index is q - 1
- *     if q > S:  index is |V| - (X / q)
- *
- * Thread-safe parallelization:
- *   Since M(v) only depends on M(q) for q <= v/2, we process states in doubling rounds
- *   [U, 2U]. In each round, all required dependencies q <= U are already fully computed,
- *   allowing race-free parallel evaluation of all v in (U, 2U].
- */
-int64 mertens_hyperbola(int64 X) {
-    if (X < 1) return 0;
-
-    // 1. Collect all distinct values floor(X / i)
-    std::vector<int64> V;
-    for (int64 i = 1; i <= X; ) {
-        int64 v = X / i;
-        V.push_back(v);
-        i = X / v + 1;
-    }
-    std::reverse(V.begin(), V.end());  // ascending
-
-    int64 S = std::sqrt(X);
-    while ((S + 1) * (S + 1) <= X) ++S;
-    while (S * S > X) --S;
-
-    int n = (int)V.size();
-    std::vector<int> M(n, 0);
-
-    auto get_idx = [&](int64 q) -> int {
-        return (q <= S) ? (int)(q - 1) : (n - (int)(X / q));
-    };
-
-    // Sequential base case for small values (e.g. up to 1000)
-    int base_idx = 0;
-    while (base_idx < n && V[base_idx] <= 1000) {
-        int64 v = V[base_idx];
-        if (v == 1) {
-            M[base_idx] = 1;
-        } else {
-            int total = 1;
-            int64 k = 2;
-            while (k <= v) {
-                int64 q = v / k;
-                int64 next_k = v / q + 1;
-                total -= (int)((next_k - k) * M[get_idx(q)]);
-                k = next_k;
-            }
-            M[base_idx] = total;
-        }
-        ++base_idx;
-    }
-
-    // Doubling rounds: all v in (U, 2U] depend only on q <= U (already computed)
-    int cur_start = base_idx;
-    while (cur_start < n) {
-        int64 max_safe = V[cur_start - 1] * 2;
-        int cur_end = cur_start;
-        while (cur_end < n && V[cur_end] <= max_safe) {
-            ++cur_end;
-        }
-        if (cur_end == cur_start) cur_end = cur_start + 1;
-
-        #pragma omp parallel for schedule(dynamic, 64)
-        for (int i = cur_start; i < cur_end; ++i) {
-            int64 v = V[i];
-            int total = 1;
-            int64 k = 2;
-            while (k <= v) {
-                int64 q = v / k;
-                int64 next_k = v / q + 1;
-                total -= (int)((next_k - k) * M[get_idx(q)]);
-                k = next_k;
-            }
-            M[i] = total;
-        }
-
-        cur_start = cur_end;
-    }
-
-    return M.back();
+void print_separator() {
+    std::cout << std::string(80, '=') << "\n";
 }
 
 int main(int argc, char* argv[]) {
-    int64 X = 1000000000000LL;  // 10^12 default for quick test
+    using namespace dirichlet;
+
+    std::string mode = "all";
+    int64 X = 1000000000000LL; // 10^12
+    int threads = 0; // default (all available)
+
     if (argc > 1) {
-        X = std::stoll(argv[1]);
+        std::string arg1 = argv[1];
+        if (arg1 == "mertens" || arg1 == "totient" || arg1 == "liouville" || arg1 == "prime_pi" || arg1 == "divisor" || arg1 == "all") {
+            mode = arg1;
+            if (argc > 2) X = std::stoll(argv[2]);
+            if (argc > 3) threads = std::stoi(argv[3]);
+        } else {
+            X = std::stoll(arg1);
+            if (argc > 2) threads = std::stoi(argv[2]);
+        }
     }
 
-    std::cout << "Computing M(" << X << ") ...\n";
-    auto start = std::chrono::steady_clock::now();
-    int64 result = mertens_hyperbola(X);
-    auto end = std::chrono::steady_clock::now();
-    double elapsed = std::chrono::duration<double>(end - start).count();
+    print_separator();
+    std::cout << " PARALLEL DIRICHLET ENGINE BENCHMARK\n";
+    std::cout << " Mode: " << mode << " | Target X: " << X << " | Threads: " 
+              << (threads > 0 ? std::to_string(threads) : "Max Available") << "\n";
+    print_separator();
 
-    std::cout << "M(" << X << ") = " << result << "\n";
-    std::cout << "Time: " << elapsed << " s\n";
-    double ratio = std::abs(result) / std::sqrt((double)X);
-    std::cout << "|M|/sqrt(X) = " << ratio << "\n";
+    auto run_benchmark = [&](const std::string& name, auto func) {
+        auto t0 = std::chrono::high_resolution_clock::now();
+        auto result = func();
+        auto t1 = std::chrono::high_resolution_clock::now();
+        double elapsed = std::chrono::duration<double>(t1 - t0).count();
+        
+        std::string res_str;
+        if constexpr (std::is_same_v<decltype(result), int128>) {
+            res_str = to_string_128(result);
+        } else {
+            res_str = std::to_string(result);
+        }
+
+        std::cout << std::left << std::setw(28) << (name + "(" + std::to_string(X) + ")") 
+                  << " = " << std::right << std::setw(26) << res_str 
+                  << "  [" << std::fixed << std::setprecision(4) << elapsed << " s]\n";
+    };
+
+    if (mode == "all" || mode == "mertens") {
+        run_benchmark("Mertens M", [&]() { return DirichletEngine::compute_mertens(X, threads); });
+    }
+    if (mode == "all" || mode == "totient") {
+        run_benchmark("Totient Sum Phi", [&]() { return DirichletEngine::compute_totient_sum(X, threads); });
+    }
+    if (mode == "all" || mode == "liouville") {
+        run_benchmark("Liouville Sum L", [&]() { return DirichletEngine::compute_liouville_sum(X, threads); });
+    }
+    if (mode == "all" || mode == "prime_pi") {
+        // Run on smaller X if X is too large for prime_pi demo
+        int64 pi_X = (X > 10000000000LL) ? 10000000000LL : X;
+        auto t0 = std::chrono::high_resolution_clock::now();
+        auto res = DirichletEngine::compute_prime_pi(pi_X);
+        auto t1 = std::chrono::high_resolution_clock::now();
+        double elapsed = std::chrono::duration<double>(t1 - t0).count();
+        std::cout << std::left << std::setw(28) << ("PrimeCount pi(" + std::to_string(pi_X) + ")") 
+                  << " = " << std::right << std::setw(22) << res 
+                  << "  [" << std::fixed << std::setprecision(4) << elapsed << " s]\n";
+    }
+    if (mode == "all" || mode == "divisor") {
+        run_benchmark("Divisor Sum D", [&]() { return DirichletEngine::compute_divisor_sum(X); });
+    }
+
+    print_separator();
+    std::cout << " Benchmark completed successfully.\n";
+    print_separator();
+
     return 0;
 }

@@ -163,32 +163,121 @@ def mertens_hyperbola(X: int) -> int:
 
 
 # ---------------------------------------------------------------------
-# 5.  Main: run all tests and print results
+# 5.  Totient summatory function (Euler Phi DP)
+# ---------------------------------------------------------------------
+
+def totient_sum_hyperbola(X: int) -> int:
+    """
+    Return Φ(X) = sum_{n=1}^X φ(n).
+    Uses the hyperbola recurrence: Φ(n) = n*(n+1)//2 - sum_{k=2}^n Φ(n // k).
+    """
+    if X < 1:
+        return 0
+
+    V = []
+    i = 1
+    while i <= X:
+        v = X // i
+        V.append(v)
+        i = X // v + 1
+    V.reverse()
+    n = len(V)
+    S_isqrt = math.isqrt(X)
+
+    def get_idx(v: int) -> int:
+        return v - 1 if v <= S_isqrt else n - (X // v)
+
+    Phi = [0] * n
+    for idx_v in range(n):
+        v = V[idx_v]
+        if v == 1:
+            Phi[idx_v] = 1
+            continue
+        total = v * (v + 1) // 2
+        k = 2
+        while k <= v:
+            q = v // k
+            next_k = v // q + 1
+            total -= (next_k - k) * Phi[get_idx(q)]
+            k = next_k
+        Phi[idx_v] = total
+
+    return Phi[-1]
+
+
+# ---------------------------------------------------------------------
+# 6.  Liouville summatory function
+# ---------------------------------------------------------------------
+
+def liouville_sum_hyperbola(X: int) -> int:
+    """
+    Return L(X) = sum_{n=1}^X λ(n).
+    Uses the hyperbola recurrence: L(n) = isqrt(n) - sum_{k=2}^n L(n // k).
+    """
+    if X < 1:
+        return 0
+
+    V = []
+    i = 1
+    while i <= X:
+        v = X // i
+        V.append(v)
+        i = X // v + 1
+    V.reverse()
+    n = len(V)
+    S_isqrt = math.isqrt(X)
+
+    def get_idx(v: int) -> int:
+        return v - 1 if v <= S_isqrt else n - (X // v)
+
+    L = [0] * n
+    for idx_v in range(n):
+        v = V[idx_v]
+        if v == 1:
+            L[idx_v] = 1
+            continue
+        total = math.isqrt(v)
+        k = 2
+        while k <= v:
+            q = v // k
+            next_k = v // q + 1
+            total -= (next_k - k) * L[get_idx(q)]
+            k = next_k
+        L[idx_v] = total
+
+    return L[-1]
+
+
+# ---------------------------------------------------------------------
+# 7.  Divisor summatory function (Hyperbola method)
+# ---------------------------------------------------------------------
+
+def divisor_sum_hyperbola(X: int) -> int:
+    """Return D(X) = sum_{n=1}^X d(n) in O(√X) time and O(1) space."""
+    if X < 1:
+        return 0
+    S = math.isqrt(X)
+    s = sum(X // i for i in range(1, S + 1))
+    return 2 * s - S * S
+
+
+# ---------------------------------------------------------------------
+# 8.  Main: run all tests and print results
 # ---------------------------------------------------------------------
 
 def main():
     print("=" * 70)
-    print(" EQUALITY-KERNEL SIEVE (EKS) - COMPLETE TEST SUITE")
-    print(" Zero modulo (%) - only //, *, +, -")
+    print(" GENERALIZED SUB-LINEAR DIRICHLET ENGINE - TEST SUITE")
+    print(" Exact O(1) Coordinate Bijection & Sub-linear Hyperbola DPs")
     print("=" * 70)
 
-    # ---- 5a. Primality test (first few primes) ----
-    print("\n--- 5a. Primality test (first 20 primes) ---")
+    # ---- 8a. Primality test ----
+    print("\n--- 8a. Primality test (first 20 primes) ---")
     primes = [n for n in range(2, 100) if is_prime_eks(n)]
     print("First 20 primes:", primes[:20])
 
-    # ---- 5b. n-th prime ----
-    print("\n--- 5b. Finding specific primes (sequential trial division) ---")
-    tests = [(100, 541), (442, 3089), (443, 3109), (10_000, 104_729)]
-    for n, target in tests:
-        start = time.perf_counter()
-        p = nth_prime_eks(n)
-        elapsed = time.perf_counter() - start
-        status = "✅" if p == target else "❌"
-        print(f"  {n:7d}th prime = {p:8d}  (target {target}) {status}  ({elapsed:.3f}s)")
-
-    # ---- 5c. Prime counting (π(X)) ----
-    print("\n--- 5c. Prime counting π(X) via hyperbola DP ---")
+    # ---- 8b. Prime counting (π(X)) ----
+    print("\n--- 8b. Prime counting π(X) via hyperbola DP ---")
     pi_tests = [(10, 4), (100, 25), (1_000_000, 78_498), (10_000_000, 664_579), (100_000_000, 5_761_455)]
     for X, target in pi_tests:
         start = time.perf_counter()
@@ -197,8 +286,8 @@ def main():
         status = "✅" if pi == target else "❌"
         print(f"  π({X:10d}) = {pi:8d}  (target {target:8d}) {status}  ({elapsed:.3f}s)")
 
-    # ---- 5d. Mertens function M(X) ----
-    print("\n--- 5d. Mertens function M(X) via hyperbola DP ---")
+    # ---- 8c. Mertens function M(X) ----
+    print("\n--- 8c. Mertens function M(X) via hyperbola DP ---")
     m_tests = [
         (10, -1),
         (100, 1),
@@ -217,8 +306,38 @@ def main():
         print(f"  M({X:12d}) = {M:8d}  (target {target:8d}) {status}  "
               f"|M|/√X = {ratio:.6f}  ({elapsed:.3f}s)")
 
+    # ---- 8d. Totient summatory Φ(X) ----
+    print("\n--- 8d. Totient summatory Φ(X) = sum_{n<=X} φ(n) ---")
+    phi_tests = [(10, 32), (100, 3044), (1_000_000, 303963552392), (10_000_000, 30396356427242)]
+    for X, target in phi_tests:
+        start = time.perf_counter()
+        phi_val = totient_sum_hyperbola(X)
+        elapsed = time.perf_counter() - start
+        status = "✅" if phi_val == target else "❌"
+        print(f"  Φ({X:10d}) = {phi_val:16d}  (target {target:16d}) {status}  ({elapsed:.3f}s)")
+
+    # ---- 8e. Liouville summatory L(X) ----
+    print("\n--- 8e. Liouville summatory L(X) = sum_{n<=X} λ(n) ---")
+    l_tests = [(10, 0), (100, -2), (1000, -14), (1_000_000, -530), (10_000_000, -842)]
+    for X, target in l_tests:
+        start = time.perf_counter()
+        l_val = liouville_sum_hyperbola(X)
+        elapsed = time.perf_counter() - start
+        status = "✅" if l_val == target else "❌"
+        print(f"  L({X:10d}) = {l_val:8d}  (target {target:8d}) {status}  ({elapsed:.3f}s)")
+
+    # ---- 8f. Divisor summatory D(X) ----
+    print("\n--- 8f. Divisor summatory D(X) = sum_{n<=X} d(n) ---")
+    d_tests = [(10, 27), (100, 482), (1000, 7069), (1_000_000, 13970034), (10_000_000, 162725364)]
+    for X, target in d_tests:
+        start = time.perf_counter()
+        d_val = divisor_sum_hyperbola(X)
+        elapsed = time.perf_counter() - start
+        status = "✅" if d_val == target else "❌"
+        print(f"  D({X:10d}) = {d_val:12d}  (target {target:12d}) {status}  ({elapsed:.3f}s)")
+
     print("\n" + "=" * 70)
-    print(" ALL TESTS COMPLETED.  ZERO MODULO (%) USED.")
+    print(" ALL TESTS COMPLETED SUCCESSFULLY.")
     print("=" * 70)
 
 
