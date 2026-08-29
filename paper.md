@@ -170,7 +170,15 @@ We validated our C++20 implementation across multiple scales and thread configur
 | **$10^{15}$** | $-3,216,373$ | — | — | — | **160.1818 s** |
 | **$10^{16}$** | $-3,195,437$ | — | — | — | **927.8322 s** |
 
-With the 2-part sequential memory streaming architecture, the evaluation of $M(10^{14}) = -875,575$ completes in **29.80 seconds**, scaling to **1 Quadrillion** ($M(10^{15}) = -3,216,373$) in **160.18 seconds**, and reaching the world-scale milestone of **10 Quadrillion** ($M(10^{16}) = -3,195,437$) in **15.46 minutes** on a single workstation with $\approx 800\text{ MB}$ memory footprint.
+### 6.2 Hardware & Experimental Environment
+
+All empirical evaluations were performed on a personal desktop computer with the following hardware and software specifications:
+- **Processor:** Apple M1 (8 cores: 4 high-performance Firestorm cores @ 3.2 GHz + 4 high-efficiency Icestorm cores @ 2.06 GHz).
+- **SIMD / Vector Units:** 128-bit ARM Neon vector processing units.
+- **Memory Subsystem:** 16 GB unified LPDDR4X SDRAM with a theoretical peak memory bandwidth of 68.25 GB/s.
+- **Operating System:** macOS 26.5.1 (Darwin arm64 kernel).
+- **Compiler Toolchain:** Apple Clang version 16.0.0 (`-O3 -std=c++20`), linked against LLVM `libomp` (OpenMP 5.0 runtime).
+- **Thread Scheduling:** 15 OpenMP threads operating under dynamic chunk scheduling (`schedule(dynamic, 64)`).
 
 ---
 

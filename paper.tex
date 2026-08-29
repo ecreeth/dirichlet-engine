@@ -350,10 +350,16 @@ $10^{16}$ & $-3,195,437$ & --- & --- & --- & \textbf{927.8322 s} \\
 \label{tab:benchmarks}
 \end{table}
 
-\subsection{Speedup and Scaling Discussion}
-At $X = 10^{13}$, the parallel doubling schedule computes $M(10^{13}) = 599,582$ in \textbf{5.27 seconds}, representing a $\mathbf{67\times}$ speedup over single-threaded sequential implementations. Scaling to the world-record scale $X = 10^{16}$ (10 quadrillion), the state space $|\V(X)| \approx 2 \times 10^8$ requires only $\sim 800\text{ MB}$ of memory, completing the evaluation in \textbf{927.83 seconds} (15.46 minutes) on a consumer workstation.
-
----
+\subsection{Hardware and Experimental Environment}
+All empirical benchmarks were performed on a personal desktop workstation with the following system configuration:
+\begin{itemize}
+    \item \textbf{Processor:} Apple M1 (8 physical cores: 4 high-performance Firestorm cores @ 3.2 GHz and 4 high-efficiency Icestorm cores @ 2.06 GHz).
+    \item \textbf{SIMD Hardware:} 128-bit ARM Neon vector processing units.
+    \item \textbf{Memory Architecture:} 16 GB Unified LPDDR4X SDRAM with 68.25 GB/s theoretical memory bandwidth.
+    \item \textbf{Operating System:} macOS 26.5.1 (Darwin arm64 kernel).
+    \item \textbf{Compiler Toolchain:} Apple Clang version 16.0.0 (\texttt{-O3 -std=c++20}), linked against LLVM \texttt{libomp} (OpenMP 5.0 runtime).
+    \item \textbf{Thread Pool:} 15 OpenMP worker threads operating under dynamic task distribution (\texttt{schedule(dynamic, 64)}).
+\end{itemize}
 
 \section{Conclusion}
 

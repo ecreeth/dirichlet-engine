@@ -35,6 +35,14 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 | $10^{15}$ | $1\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,216,373$ | **160.182 s** ($2.67\text{ min}$) |
 | $10^{16}$ | $10\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,195,437$ | **927.832 s** ($15.46\text{ min}$) |
 
+### 💻 Benchmark Hardware Specifications
+- **Processor:** Apple M1 (8 cores: 4 Performance + 4 Efficiency cores)
+- **Architecture:** 64-bit ARM (`arm64`) with 128-bit Neon vector extensions
+- **Memory:** 16 GB Unified Memory (LPDDR4X, 68.25 GB/s bandwidth)
+- **Operating System:** macOS (Darwin arm64)
+- **Compiler:** Apple Clang C++20 (`-O3 -std=c++20`), LLVM `libomp` (OpenMP runtime)
+- **Worker Threads:** 15 OpenMP threads
+
 ---
 
 ## 📂 Repository Structure
