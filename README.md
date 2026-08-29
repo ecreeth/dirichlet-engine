@@ -52,7 +52,6 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 ├── dirichlet_engine.hpp   # Core C++20 header-only template library
 ├── bench.cpp              # Multi-threaded C++ CLI benchmark tool
 ├── dirichlet.py           # Pure Python reference engine & test suite
-├── mertens_numba.py       # Numba JIT-accelerated script
 ├── proof.md               # Formal mathematical proofs (Theorems 1–3)
 ├── paper.md               # Research manuscript (Markdown)
 ├── paper.tex              # Research manuscript (AMS/SIAM LaTeX + TikZ)
