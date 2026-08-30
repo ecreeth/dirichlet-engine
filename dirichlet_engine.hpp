@@ -201,7 +201,7 @@ public:
 
         if (X <= u) return M_sieve[X];
 
-        std::vector<int> M_dp(n, 0);
+        std::vector<int64> M_dp(n, 0);
 
         auto solve_block = [&](int start_idx, int end_idx) {
             #ifdef _OPENMP
@@ -212,7 +212,7 @@ public:
                 double dv = static_cast<double>(v);
                 int64 K = static_cast<int64>(std::sqrt(dv));
                 int64 k_max = static_cast<int64>(dv / static_cast<double>(K + 1));
-                int total = 1;
+                int64 total = 1;
 
                 if (v <= 9007199254740992LL) {
                     int64 k_split = static_cast<int64>(dv / static_cast<double>(u + 1));

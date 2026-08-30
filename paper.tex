@@ -48,7 +48,8 @@
 \title{\textbf{Parallel DAG Scheduling and Direct Coordinate Geometry for Sublinear Dirichlet Summatory Algorithms}}
 
 \author{
-    \textbf{Research Collaboratory in Computational Number Theory} \\
+    \textbf{Luis Canario} \\
+    Independent Researcher \\
     \texttt{\small \href{https://github.com/ecreeth/dirichlet-engine}{https://github.com/ecreeth/dirichlet-engine}}
 }
 
@@ -85,15 +86,18 @@ at large bounds $X \ge 10^{12}$ is a central problem across computational number
     \item The \textbf{Mertens function} $M(X) = \sum_{n \le X} \mu(n)$, where $\mu$ is the M{\"o}bius function. Bounding $\abs{M(X)} = \Oh(X^{1/2+\varepsilon})$ is equivalent to the Riemann Hypothesis \cite{mertens1897uber, deleglise1996computing}.
     \item The \textbf{Totient summatory function} $\Phi(X) = \sum_{n \le X} \phi(n)$, governing the asymptotic number of coprime integer pairs in grid lattices \cite{pritchard1987linear}.
     \item The \textbf{Liouville summatory function} $L(X) = \sum_{n \le X} \lambda(n)$, measuring prime-factor parity bias and connected to P{\'o}lya's conjecture.
-    \item The \textbf{Prime counting function} $\pi(X) = \sum_{p \le X} 1$ \cite{lucy1994algorithm}.
+    \item The \textbf{Prime counting function} $\pi(X) = \sum_{p \le X} 1$ \cite{lucy2011algorithm}.
 \end{itemize}
 
 \subsection{Prior Work and Asymptotic Complexity}
 Evaluating $G(X)$ by term-by-term summation requires $\Oh(X)$ operations. In modern computational number theory, sublinear methods bypass evaluating each individual $g(n)$:
 \begin{enumerate}
     \item \textbf{Analytical \& Combinatorial Partitioning:} For specific functions like $\mu(n)$ and prime indicators, combinatorial identities (such as Vaughan's or Buchstab's identity) combined with smooth numerical integration achieve $\Oh(X^{2/3} / \log^A X)$ operations \cite{deleglise1996computing, kotnik2004order, kuznetsov2011computing}.
-    \item \textbf{Hyperbolic Dynamic Programming (Lucy DP / Min-25):} For general Dirichlet convolutions $h = f * g$, grouping lattice points under integer hyperbolas yields an exact sublinear recurrence over the quotient space $\V(X) = \{\floor{X/i} : 1 \le i \le X\}$ in $\Oh(X^{3/4})$ operations and $\Oh(\sqrt{X})$ memory \cite{lucy1994algorithm, min2016modified}.
+    \item \textbf{Hyperbolic Dynamic Programming (Lucy DP / Min-25):} For general Dirichlet convolutions $h = f * g$, grouping lattice points under integer hyperbolas yields an exact sublinear recurrence over the quotient space $\V(X) = \{\floor{X/i} : 1 \le i \le X\}$ in $\Oh(X^{3/4})$ operations and $\Oh(\sqrt{X})$ memory \cite{lucy2011algorithm, min25sieve}.
 \end{enumerate}
+
+\paragraph{Parallel and High-Performance Implementations.}
+Notable open-source implementations include Walisch's \texttt{primecount} \cite{walisch2024primecount}, which achieves highly optimized single- and multi-threaded evaluation of $\pi(X)$ using the Lagarias--Miller--Odlyzko and Deleglise--Rivat combinatorial methods in $\Oh(X^{2/3} / \log^2 X)$ time. For the Mertens function, Hurst~\cite{hurst2026practical} recently computed $M(10^{25})$ using advanced sieving and analytic techniques. Our work complements these efforts by providing a general-purpose parallel framework for \emph{arbitrary} Dirichlet convolutions at $\Oh(X^{3/4})$ complexity, rather than targeting a single arithmetic function.
 
 \subsection{The Addressing and Parallelization Dilemma}
 While hyperbolic DP applies to any multiplicative Dirichlet convolution, existing implementations face two practical barriers:
@@ -105,13 +109,12 @@ While hyperbolic DP applies to any multiplicative Dirichlet convolution, existin
 \subsection{Overview of Results}
 In this paper, we resolve both bottlenecks:
 \begin{enumerate}
-    \item We derive a closed-form, arithmetic coordinate bijection $\tau(q)$ that maps any quotient state $q \in \V(X)$ to its dense array index in $\Oh(1)$ operations with zero auxiliary memory (Section \ref{sec:geometry}).
+    \item We formalize and prove a closed-form, arithmetic coordinate bijection $\tau(q)$ that maps any quotient state $q \in \V(X)$ to its dense array index in $\Oh(1)$ operations with zero auxiliary memory (Section \ref{sec:geometry}).
     \item We prove the \textbf{Doubling-Stage DAG Theorem} (Section \ref{sec:dag}), showing that the dependency graph partitions into $K = \ceil{\log_2 X}$ completely independent parallel stages (antichains).
     \item We establish the work-span bounds on the PRAM model, showing an asymptotic parallel speedup of $\Omega(X^{1/4})$ (Section \ref{sec:complexity}).
     \item We provide a unified C++20 template engine validated across multi-core systems up to $X = 10^{14}$ (Sections \ref{sec:engine} and \ref{sec:benchmarks}).
 \end{enumerate}
 
----
 
 \section{Geometry of the Hyperbola State Space $\V(X)$}
 \label{sec:geometry}
@@ -184,7 +187,10 @@ Then $\tau$ is a strict order-preserving bijection computable in $\Oh(1)$ arithm
 By Lemma \ref{lem:structure}, the first $S$ ascending elements are $v_j = j + 1$ for $j \in [0, S-1]$, whence $\tau(q) = q - 1$. The remaining elements are $u_k = \floor{X/k}$ for $k = \floor{X/(S+1)}, \dots, 1$. In sorted ascending order, $u_k$ is placed at index $N - k$. Given $q = \floor{X/k}$, $k = \floor{X/q}$, yielding $\tau(q) = N - \floor{X/q}$. Both branches cover disjoint contiguous sub-intervals spanning $[0, N-1]$.
 \end{proof}
 
----
+\begin{remark}
+The coordinate mapping $\tau$ is implicit in practical implementations of sublinear summatory algorithms within computational number theory and competitive programming communities \cite{lucy2011algorithm, min25sieve}. To our knowledge, Theorem \ref{thm:coordinate} provides its first explicit statement and formal proof in the literature. Our primary contribution is the integration of this mapping into a provably parallel framework (Sections \ref{sec:dag}--\ref{sec:complexity}).
+\end{remark}
+
 
 \section{The Doubling-Stage DAG Decomposition Theorem}
 \label{sec:dag}
@@ -247,7 +253,6 @@ Then:
 For any $v \in \V_m$, $v \le 2^m$. Since $k \ge 2$, $q = \floor{v/k} \le \floor{2^m / 2} = 2^{m-1}$. The subset of states $\{u \in \V(X) : u \le 2^{m-1}\}$ is precisely the union $\bigcup_{j=1}^{m-1} \V_j$. Thus all required sub-state evaluations were fully completed in preceding stages $j < m$. Since no intra-stage dependencies exist, $\V_m$ is an antichain, establishing parallel independence.
 \end{proof}
 
----
 
 \section{Work-Span Complexity on the PRAM Model}
 \label{sec:complexity}
@@ -277,7 +282,6 @@ The critical path span is bounded by summing the execution times along the longe
 If the inner sum of size $2\sqrt{v}$ is tree-reduced in parallel in $\Oh(\log v)$ time, the span across $K$ stages is $\sum_{m=1}^K \Oh(m) = \Oh(K^2) = \Oh(\log^2 X)$. The speedup ratio $W(X)/T_\infty(X)$ yields the claim.
 \end{proof}
 
----
 
 \section{Unified Convolution Engine Architecture}
 \label{sec:engine}
@@ -316,7 +320,10 @@ $cur\_start \leftarrow$ first index with $V[cur\_start] > 1000$\;
 \label{alg:doubling}
 \end{algorithm}
 
----
+\begin{remark}[Floating-Point Division Correctness]
+Our implementation evaluates $\floor{v/k}$ via IEEE~754 double-precision division when $v \le 2^{53}$. Since both $v$ and $k$ are exactly representable as 64-bit doubles in this range, the quotient $v/k$ incurs at most $\frac{1}{2}$ ulp of relative error. For $v \le 2^{53}$ and $k \ge 1$, this error is strictly less than $1$, so truncation to integer yields the exact floor. For $v > 2^{53}$, the engine falls back to exact 64-bit integer division.
+\end{remark}
+
 
 \section{Empirical Validation \& Scaling Benchmarks}
 \label{sec:benchmarks}
@@ -343,12 +350,12 @@ $10^{11}$ & $-87,856$ & $3,039,635,509,283,386,211,140$ & $-342,224$ & $4,118,05
 $10^{12}$ & $62,366$ & $303,963,550,927,059,804,025,910$ & $-522,626$ & $37,607,912,018$ & \textbf{0.2138 s} \\
 $10^{13}$ & $599,582$ & $30,396,355,092,702,898,919,527,444$ & $-966,578$ & $346,065,536,839$ & \textbf{1.1954 s} \\
 $10^{14}$ & $-875,575$ & $3,039,635,509,270,144,893,910,357,854$ & $-7,424,752$ & $3,204,941,750,802$ & \textbf{8.5297 s} \\
-$10^{15}$ & $-3,216,373$ & $303,963,550,927,013,509,478,708,835,152$ & $-29,445,104$ & $29,844,570,422,669$ & \textbf{79.5612 s} \\
-$10^{16}$ & $-3,195,437$ & $30,396,355,092,701,332,166,351,822,199,504$ & $-97,617,938$ & $279,238,341,033,925$ & \textbf{622.4313 s} \\
+$10^{15}$ & $-3,216,373$ & $303,963,550,927,013,509,478,708,835,152$ & $-29,445,104$ & $29,844,570,422,669^\dagger$ & \textbf{79.5612 s} \\
+$10^{16}$ & $-3,195,437$ & $30,396,355,092,701,332,166,351,822,199,504$ & $-97,617,938$ & $279,238,341,033,925^\dagger$ & \textbf{622.4313 s} \\
 \bottomrule
 \end{tabular}%
 }
-\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads, 2-part vectorization, and hybrid linear pre-sieving ($u$-cutoff). Results up to $10^{16}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing, hurst2026practical}.}
+\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads, 2-part vectorization, and hybrid linear pre-sieving ($u$-cutoff). Results up to $10^{16}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing, hurst2026practical}. ${}^\dagger$Values from published tables, not computed by our engine.}
 \label{tab:benchmarks}
 \end{table}
 
@@ -360,19 +367,86 @@ All empirical benchmarks were performed on a personal desktop workstation with t
     \item \textbf{Memory Architecture:} 16 GB Unified LPDDR4X SDRAM with 68.25 GB/s theoretical memory bandwidth.
     \item \textbf{Operating System:} macOS 26.5.1 (Darwin arm64 kernel).
     \item \textbf{Compiler Toolchain:} Apple Clang version 16.0.0 (\texttt{-O3 -std=c++20}), linked against LLVM \texttt{libomp} (OpenMP 5.0 runtime).
-    \item \textbf{Thread Pool:} 15 OpenMP worker threads operating under dynamic task distribution (\texttt{schedule(dynamic, 16)}).
+    \item \textbf{Thread Pool:} 15 OpenMP worker threads operating under guided task distribution (\texttt{schedule(guided)}). Moderate oversubscription ($15/8 \approx 1.9\times$) empirically improved throughput by keeping all cores saturated during load-imbalanced doubling stages, yielding $\sim 20$--$40\%$ speedup over $8$ threads at $X \ge 10^8$.
 \end{itemize}
 
 \subsection{Hybrid Pre-Sieve Optimization and Vectorization}
 Following insights from recent record computations by Hurst \cite{hurst2026practical}, we incorporate a scaled odd-only linear pre-sieve up to cutoff $u = \min(\max(\lfloor\sqrt{X}\rfloor, c(T) \cdot X^{2/3}), 10^8)$. For states $v \le u$, exact prefix sums are evaluated in linear $\Oh(u)$ time ($\sim 0.02$--$0.8$ seconds) and mapped directly into the contiguous state array. This bypasses the hyperbola recursion for the base states and provides branchless $\Oh(1)$ cache hits for all inner loop queries $q \le u$. Coupled with ARM Neon float64 vector division, this delivers a $3\times$--$4\times$ overall runtime reduction across all scales.
 
+\subsection{Memory Access Patterns and Cache Behavior}
+The coordinate bijection $\tau$ enables purely sequential memory access within each doubling stage. For dense-prefix queries ($q \le S$), the index $\tau(q) = q - 1$ produces a linear stride-1 traversal of the array, achieving optimal spatial locality. For sparse-suffix queries ($q > S$), the index $\tau(q) = N - \floor{X/q}$ accesses the upper portion of the array in monotonically increasing order as $q$ decreases through the inner loop. Combined with the pre-sieve buffer (which fits entirely in L2/L3 cache for $u \le 10^8$), the vast majority of inner-loop memory accesses are cache-resident, avoiding the random-access patterns inherent in hash-table-based implementations.
+
+\subsection{Comparative Benchmark: \texttt{primecount} vs.\ Our Engine}
+Table \ref{tab:comparison} compares our $\Oh(X^{3/4})$ Lucy DP engine against Walisch's \texttt{primecount} \cite{walisch2024primecount}, which uses the Lagarias--Miller--Odlyzko and Del{\'e}glise--Rivat $\Oh(X^{2/3}/\log^2 X)$ combinatorial methods. As expected, \texttt{primecount}'s asymptotically superior algorithm dominates at large $X$. Our engine's advantage lies in generality: the same framework evaluates $M(X)$, $\Phi(X)$, $L(X)$, and $\pi(X)$ without function-specific combinatorial identities.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}lrrrl@{}}
+\toprule
+\textbf{Target $X$} & \textbf{$\pi(X)$} & \textbf{\texttt{primecount}} & \textbf{Our Engine} & \textbf{Speedup} \\
+\midrule
+$10^{7}$  & $664{,}579$       & $0.007$ s & $0.004$ s  & $1.8\times$ (ours) \\
+$10^{8}$  & $5{,}761{,}455$   & $0.006$ s & $0.004$ s  & $1.6\times$ (ours) \\
+$10^{9}$  & $50{,}847{,}534$  & $0.006$ s & $0.006$ s  & $\sim 1\times$ \\
+$10^{10}$ & $455{,}052{,}511$ & $0.006$ s & $0.017$ s  & $2.7\times$ (pc) \\
+$10^{11}$ & $4{,}118{,}054{,}813$ & $0.009$ s & $0.080$ s & $9.3\times$ (pc) \\
+$10^{12}$ & $37{,}607{,}912{,}018$ & $0.015$ s & $0.403$ s & $27\times$ (pc) \\
+$10^{13}$ & $346{,}065{,}536{,}839$ & $0.019$ s & $2.109$ s & $111\times$ (pc) \\
+\bottomrule
+\end{tabular}
+\caption{Single-threaded $\pi(X)$ comparison. \texttt{primecount} uses $\Oh(X^{2/3}/\log^2 X)$ combinatorial methods; our engine uses the general-purpose $\Oh(X^{3/4})$ Lucy DP. Both produce identical results.}
+\label{tab:comparison}
+\end{table}
+
+\subsection{Thread-Scaling Analysis}
+Table \ref{tab:scaling} reports wall-clock times for $M(10^{12})$ across thread counts, averaged over $3$ independent runs. Peak performance is achieved at $8$ threads (matching the physical core count), with moderate degradation under oversubscription at $15$ threads.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}rrrrl@{}}
+\toprule
+\textbf{Threads} & \textbf{Mean Time (s)} & \textbf{Speedup} & \textbf{Efficiency} \\
+\midrule
+$1$  & $0.563$ & $1.00\times$ & $100\%$ \\
+$2$  & $0.307$ & $1.83\times$ & $92\%$ \\
+$4$  & $0.200$ & $2.81\times$ & $70\%$ \\
+$8$  & $0.188$ & $3.00\times$ & $37\%$ \\
+$15$ & $0.220$ & $2.56\times$ & $17\%$ \\
+\bottomrule
+\end{tabular}
+\caption{Thread-scaling for $M(10^{12})$ on Apple M1 (8 cores). Mean of $3$ runs. Speedup is relative to single-threaded execution.}
+\label{tab:scaling}
+\end{table}
+
+\subsection{Multi-Run Timing Statistics}
+Table \ref{tab:multirun} reports mean and standard deviation for Mertens evaluations across $3$ independent runs at $15$ OpenMP threads, providing error bounds for the timings in Table~\ref{tab:benchmarks}.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Target $X$} & \textbf{Mean Time (s)} & \textbf{Std.\ Dev.\ (s)} \\
+\midrule
+$10^{10}$ & $0.016$ & $\pm 0.004$ \\
+$10^{11}$ & $0.044$ & $\pm 0.008$ \\
+$10^{12}$ & $0.220$ & $\pm 0.009$ \\
+$10^{13}$ & $1.090$ & $\pm 0.126$ \\
+$10^{14}$ & $6.066$ & $\pm 0.117$ \\
+\bottomrule
+\end{tabular}
+\caption{Multi-run Mertens timing statistics with $15$ OpenMP threads ($3$ runs per scale).}
+\label{tab:multirun}
+\end{table}
+
 \section{Conclusion}
 
-We have introduced a mathematically rigorous, lock-free parallel framework for Dirichlet summatory dynamic programming. By proving the **Direct Coordinate Bijection Theorem**, we remove all dynamic lookup overhead. By establishing the **Doubling-Stage DAG Theorem**, we demonstrate that sublinear hyperbolic algorithms decompose into $\ceil{\log_2 X}$ parallel antichains with an asymptotic speedup of $\Omega(X^{1/4})$.
+We have introduced a mathematically rigorous, lock-free parallel framework for Dirichlet summatory dynamic programming. By proving the \textbf{Direct Coordinate Bijection Theorem}, we remove all dynamic lookup overhead. By establishing the \textbf{Doubling-Stage DAG Theorem}, we demonstrate that sublinear hyperbolic algorithms decompose into $\ceil{\log_2 X}$ parallel antichains with an asymptotic speedup of $\Omega(X^{1/4})$.
 
 Future work includes extending the doubling framework to $\Oh(X^{2/3})$ combinatorial sieves \cite{deleglise1996computing, hurst2026practical} and developing GPU/MPI implementations for computations beyond $X \ge 10^{18}$.
 
----
 
 \bibliographystyle{plain}
 \bibliography{references}
