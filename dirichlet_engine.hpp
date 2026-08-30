@@ -251,10 +251,10 @@ public:
                         int64 n3 = static_cast<int64>(vgetq_lane_f64(res2, 0));
                         int64 n4 = static_cast<int64>(vgetq_lane_f64(res2, 1));
                         
-                        total -= static_cast<int>((v_div_q - n1) * M_sieve[q]);
-                        total -= static_cast<int>((n1 - n2) * M_sieve[q + 1]);
-                        total -= static_cast<int>((n2 - n3) * M_sieve[q + 2]);
-                        total -= static_cast<int>((n3 - n4) * M_sieve[q + 3]);
+                        total -= (v_div_q - n1) * static_cast<int64>(M_sieve[q]);
+                        total -= (n1 - n2) * static_cast<int64>(M_sieve[q + 1]);
+                        total -= (n2 - n3) * static_cast<int64>(M_sieve[q + 2]);
+                        total -= (n3 - n4) * static_cast<int64>(M_sieve[q + 3]);
                         v_div_q = n4;
                     }
                     #endif
@@ -262,7 +262,7 @@ public:
                     for (; q <= K; ++q) {
                         int64 v_div_q_next = static_cast<int64>(dv / static_cast<double>(q + 1));
                         int64 count = v_div_q - v_div_q_next;
-                        total -= static_cast<int>(count * M_sieve[q]);
+                        total -= count * static_cast<int64>(M_sieve[q]);
                         v_div_q = v_div_q_next;
                     }
                 } else {
@@ -283,7 +283,7 @@ public:
                     for (; q <= K; ++q) {
                         int64 v_div_q_next = v / (q + 1);
                         int64 count = v_div_q - v_div_q_next;
-                        total -= static_cast<int>(count * M_sieve[q]);
+                        total -= count * static_cast<int64>(M_sieve[q]);
                         v_div_q = v_div_q_next;
                     }
                 }
@@ -531,7 +531,7 @@ public:
                 double dv = static_cast<double>(v);
                 int64 K = static_cast<int64>(std::sqrt(dv));
                 int64 k_max = static_cast<int64>(dv / static_cast<double>(K + 1));
-                int total = static_cast<int>(K);
+                int64 total = K;
 
                 if (v <= 9007199254740992LL) {
                     int64 k_split = static_cast<int64>(dv / static_cast<double>(u + 1));
@@ -541,14 +541,7 @@ public:
                         int64 q = static_cast<int64>(dv / static_cast<double>(k));
                         total -= L_dp[n - static_cast<int>(X / q)];
                     }
-                    int64 k = k_lim + 1;
-                    for (; k + 3 <= k_max; k += 4) {
-                        total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k))];
-                        total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k + 1))];
-                        total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k + 2))];
-                        total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k + 3))];
-                    }
-                    for (; k <= k_max; ++k) {
+                    for (int64 k = k_lim + 1; k <= k_max; ++k) {
                         total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k))];
                     }
 
@@ -568,10 +561,10 @@ public:
                         int64 n3 = static_cast<int64>(vgetq_lane_f64(res2, 0));
                         int64 n4 = static_cast<int64>(vgetq_lane_f64(res2, 1));
                         
-                        total -= static_cast<int>((v_div_q - n1) * L_sieve[q]);
-                        total -= static_cast<int>((n1 - n2) * L_sieve[q + 1]);
-                        total -= static_cast<int>((n2 - n3) * L_sieve[q + 2]);
-                        total -= static_cast<int>((n3 - n4) * L_sieve[q + 3]);
+                        total -= (v_div_q - n1) * static_cast<int64>(L_sieve[q]);
+                        total -= (n1 - n2) * static_cast<int64>(L_sieve[q + 1]);
+                        total -= (n2 - n3) * static_cast<int64>(L_sieve[q + 2]);
+                        total -= (n3 - n4) * static_cast<int64>(L_sieve[q + 3]);
                         v_div_q = n4;
                     }
                     #endif
@@ -579,7 +572,7 @@ public:
                     for (; q <= K; ++q) {
                         int64 v_div_q_next = static_cast<int64>(dv / static_cast<double>(q + 1));
                         int64 count = v_div_q - v_div_q_next;
-                        total -= static_cast<int>(count * L_sieve[q]);
+                        total -= count * static_cast<int64>(L_sieve[q]);
                         v_div_q = v_div_q_next;
                     }
                 } else {
@@ -599,7 +592,7 @@ public:
                     for (; q <= K; ++q) {
                         int64 v_div_q_next = v / (q + 1);
                         int64 count = v_div_q - v_div_q_next;
-                        total -= static_cast<int>(count * L_sieve[q]);
+                        total -= count * static_cast<int64>(L_sieve[q]);
                         v_div_q = v_div_q_next;
                     }
                 }

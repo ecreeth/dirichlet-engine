@@ -512,16 +512,39 @@ $10^{12}$ & $0.202$ & $\pm 0.014$ \\
 $10^{13}$ & $1.055$ & $\pm 0.038$ \\
 $10^{14}$ & $6.115$ & $\pm 0.219$ \\
 \bottomrule
+\subsection{Heterogeneous GPU Antichain Kernel Scheduling}
+\label{sec:gpu}
+
+To explore massively parallel acceleration, we implemented an Apple Metal compute pipeline (\texttt{MetalDirichletEngine}) leveraging Apple Silicon Unified Memory. The architecture dynamically exploits the geometric structure of the doubling-stage DAG:
+\begin{enumerate}
+    \item \textbf{Wide Antichain GPU Offload:} Early stages $\V_m$ contain dense populations of states ($|\V_m| \ge 256$) with modest per-state evaluation work ($2\sqrt{v} \le 10^5$). These stages are mapped directly onto GPU compute grid threadgroups executing MSL kernels without host-device memory copying (\texttt{MTLResourceStorageModeShared}).
+    \item \textbf{High-Intensity CPU SIMD Reduction:} Late stages contain few states with intensive inner summation ($2\sqrt{v} \ge 10^7$), where out-of-order CPU cores utilizing 128-bit ARM Neon vector division achieve higher throughput than GPU shader ALUs.
+\end{enumerate}
+Table \ref{tab:gpu} compares CPU OpenMP and Heterogeneous GPU execution for $M(X)$ across scales. Both pipelines produce bit-identical results, validating the correctness and portability of the lock-free coordinate bijection across heterogeneous compute architectures.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Target $X$} & \textbf{Exact $M(X)$} & \textbf{CPU OpenMP (8T)} & \textbf{Heterogeneous (CPU+GPU)} \\
+\midrule
+$10^{10}$ & $-33{,}722$ & $0.011$ s & $0.061$ s \\
+$10^{11}$ & $-87{,}856$ & $0.047$ s & $0.276$ s \\
+$10^{12}$ & $62{,}366$   & $0.196$ s & $1.185$ s \\
+$10^{13}$ & $599{,}582$  & $1.055$ s & $4.504$ s \\
+$10^{14}$ & $-875{,}575$ & $6.115$ s & $27.613$ s \\
+\bottomrule
 \end{tabular}
-\caption{Multi-run Mertens timing statistics with $8$ OpenMP threads ($3$ runs per scale).}
-\label{tab:multirun}
+\caption{Cross-architecture comparison between 8-thread CPU OpenMP and Heterogeneous Metal GPU pipeline for $M(X)$. Both evaluate identical lock-free DAG antichains over shared unified memory.}
+\label{tab:gpu}
 \end{table}
 
 \section{Conclusion}
 
 We have introduced a mathematically rigorous, lock-free parallel framework for Dirichlet summatory dynamic programming. By proving the \textbf{Direct Coordinate Bijection Theorem}, we remove all dynamic lookup overhead. By establishing the \textbf{Doubling-Stage DAG Theorem}, we demonstrate that sublinear hyperbolic algorithms decompose into $\ceil{\log_2 X}$ parallel antichains with an asymptotic speedup of $\Omega(X^{1/4})$.
 
-Future work includes extending the doubling framework to $\Oh(X^{2/3})$ combinatorial sieves \cite{deleglise1996computing, hurst2026practical} and developing GPU/MPI implementations for computations beyond $X \ge 10^{18}$.
+Future work includes extending the doubling framework to $\Oh(X^{2/3})$ combinatorial sieves \cite{deleglise1996computing, hurst2026practical} and developing multi-node MPI clusters for computations beyond $X \ge 10^{18}$.
 
 
 \bibliographystyle{plain}

@@ -50,7 +50,10 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 ```text
 .
 ├── dirichlet_engine.hpp       # Core C++20 header-only template library
+├── metal_engine.hpp           # Metal GPU & Heterogeneous Antichain Engine header
+├── metal_engine.mm            # Objective-C++ Metal compute pipeline implementation
 ├── bench.cpp                  # Multi-threaded C++ CLI benchmark tool
+├── bench_gpu.mm               # Heterogeneous CPU vs. Apple Metal GPU benchmark tool
 ├── test_engine.cpp            # 25-case unit test suite (Mertens, PrimePi, Totient, Liouville)
 ├── reproduce_paper_bench.cpp  # Reproduces LaTeX Table 1 for paper.tex
 ├── dirichlet.py               # Pure Python reference engine & test suite
@@ -88,7 +91,20 @@ clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
 ./bench mertens 100000000000000 8
 ```
 
-### 2. Reproduce Paper Benchmark Table (`paper.tex`)
+### 2. Apple Metal GPU & Heterogeneous Engine (macOS Apple Silicon)
+
+```bash
+# Compile Heterogeneous CPU + Apple Metal GPU benchmark
+clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
+    -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib -lomp \
+    -framework Metal -framework Foundation \
+    metal_engine.mm bench_gpu.mm -o bench_gpu
+
+# Benchmark CPU OpenMP vs. Metal GPU on Mertens at 1 Trillion
+./bench_gpu 1000000000000 8
+```
+
+### 3. Reproduce Paper Benchmark Table (`paper.tex`)
 
 To run the multi-scale automated benchmark across all arithmetic functions and generate LaTeX `Table 1` formatted output:
 
