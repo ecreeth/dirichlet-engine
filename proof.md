@@ -18,13 +18,13 @@ The set $\mathcal{V}(X)$ consists of exactly:
 Furthermore, when sorted in strictly ascending order:
 $$\mathcal{V}(X) = \left( v_0, v_1, \dots, v_{N-1} \right)$$
 the cardinality $N = |\mathcal{V}(X)|$ satisfies:
-$$N = S + \left\lfloor \frac{X}{S} \right\rfloor - \left[ S = \left\lfloor \frac{X}{S} \right\rfloor \right] = 2\lfloor\sqrt{X}\rfloor + \mathcal{O}(1)$$
+$$N = S + \left\lfloor \frac{X}{S+1} \right\rfloor = 2\lfloor\sqrt{X}\rfloor + \mathcal{O}(1)$$
 
 *Proof.*  
 For $i > \lfloor X/(S+1) \rfloor$, the quotient $q = \lfloor X/i \rfloor \le S$. For each integer $k \in \{1, 2, \dots, S\}$, setting $i = \lfloor X/k \rfloor$ yields $\lfloor X / \lfloor X/k \rfloor \rfloor = k$. Thus, every integer $1 \le k \le S$ is present in $\mathcal{V}(X)$.  
-For $i \le S$, the values $\lfloor X/i \rfloor$ are strictly decreasing with $i$, since:
+For $i \le \lfloor X/(S+1) \rfloor$, we have $\lfloor X/i \rfloor > S$. For $i \le S$, the values $\lfloor X/i \rfloor$ are strictly decreasing with $i$, since:
 $$\frac{X}{i} - \frac{X}{i+1} = \frac{X}{i(i+1)} \ge \frac{X}{S(S+1)} \ge \frac{X}{\sqrt{X}(\sqrt{X}+1)} = \frac{\sqrt{X}}{\sqrt{X}+1} > 0$$
-When $i \le \sqrt{X}-1$, the difference exceeds $1$, ensuring each $\lfloor X/i \rfloor$ is a distinct integer $> S$. The number of elements $> S$ is precisely $\lfloor X / (S+1) \rfloor = \lfloor X/S \rfloor - [S = \lfloor X/S \rfloor]$. Adding the $S$ elements $\le S$ yields the cardinality $N$. $\blacksquare$
+When $i \le \sqrt{X}-1$, the difference exceeds $1$, ensuring each $\lfloor X/i \rfloor$ is a distinct integer $> S$. The number of elements $> S$ is precisely $\lfloor X / (S+1) \rfloor$. Adding the $S$ elements $\le S$ yields the exact cardinality $N = S + \lfloor X / (S+1) \rfloor$. $\blacksquare$
 
 ---
 
@@ -65,18 +65,20 @@ Consider the dependency graph $\mathcal{G}_{\mathcal{V}} = (\mathcal{V}(X), \mat
 **Theorem 2 (Topological Depth and Stage Independence).**  
 For any $v \in \mathcal{V}(X)$ and any $k \ge 2$, the required sub-state $q = \lfloor v/k \rfloor$ satisfies:
 $$q \le \left\lfloor \frac{v}{2} \right\rfloor$$
-Consequently, let $K = \lceil \log_2 X \rceil$. Partition $\mathcal{V}(X)$ into $K$ disjoint subsets:
-$$\mathcal{V}_m \triangleq \left\{ v \in \mathcal{V}(X) : 2^{m-1} < v \le 2^m \right\}, \quad 1 \le m \le K$$
+Consequently, let $K = \lceil \log_2 X \rceil$. Partition $\mathcal{V}(X)$ into $K+1$ disjoint subsets:
+$$\mathcal{V}_0 \triangleq \{1\}, \quad \mathcal{V}_m \triangleq \left\{ v \in \mathcal{V}(X) : 2^{m-1} < v \le 2^m \right\}, \quad 1 \le m \le K$$
 Then:
-1. For every $v \in \mathcal{V}_m$, all dependencies $q = \lfloor v/k \rfloor$ ($k \ge 2$) satisfy:
-   $$q \in \bigcup_{j=1}^{m-1} \mathcal{V}_j$$
-2. The subgraph induced on each stage $\mathcal{V}_m$ contains **zero edges** ($\mathcal{E} \cap (\mathcal{V}_m \times \mathcal{V}_m) = \emptyset$).
-3. All states in $\mathcal{V}_m$ can be evaluated concurrently in parallel without locks, atomic operations, or inter-thread communication.
+1. For $v \in \mathcal{V}_0 = \{1\}$, $G(1) = (f*g)(1)/f(1) = g(1)$ is the trivial base case.
+2. For every $m \ge 1$ and every $v \in \mathcal{V}_m$, all dependencies $q = \lfloor v/k \rfloor$ ($k \ge 2$) satisfy:
+   $$q \in \bigcup_{j=0}^{m-1} \mathcal{V}_j$$
+3. The subgraph induced on each stage $\mathcal{V}_m$ contains **zero edges** ($\mathcal{E} \cap (\mathcal{V}_m \times \mathcal{V}_m) = \emptyset$).
+4. All states in $\mathcal{V}_m$ can be evaluated concurrently in parallel without locks, atomic operations, or inter-thread communication.
 
 *Proof.*  
-1. For any $v \in \mathcal{V}_m$, $v \le 2^m$. For any $k \ge 2$, $q = \lfloor v/k \rfloor \le \lfloor 2^m / 2 \rfloor = 2^{m-1}$.
-2. By definition, $\bigcup_{j=1}^{m-1} \mathcal{V}_j = \{u \in \mathcal{V}(X) : u \le 2^{m-1}\}$. Thus, $q \in \bigcup_{j=1}^{m-1} \mathcal{V}_j$.
-3. Since $q \le 2^{m-1} < v$, no state in $\mathcal{V}_m$ depends on any other state in $\mathcal{V}_m$. Each stage is an antichain in the dependency poset, establishing complete parallel independence. $\blacksquare$
+1. For $\mathcal{V}_0 = \{1\}$, $G(1) = g(1)$ requires no sub-states since $\sum_{k=2}^v$ is empty.
+2. For any $m \ge 1$ and $v \in \mathcal{V}_m$, $v \le 2^m$. For any $k \ge 2$, $q = \lfloor v/k \rfloor \le \lfloor 2^m / 2 \rfloor = 2^{m-1}$.
+3. By definition, $\bigcup_{j=0}^{m-1} \mathcal{V}_j = \{u \in \mathcal{V}(X) : u \le 2^{m-1}\}$. Thus, $q \in \bigcup_{j=0}^{m-1} \mathcal{V}_j$.
+4. Since $q \le 2^{m-1} < v$, no state in $\mathcal{V}_m$ depends on any other state in $\mathcal{V}_m$. Each stage is an antichain in the dependency poset, establishing complete parallel independence. $\blacksquare$
 
 ---
 

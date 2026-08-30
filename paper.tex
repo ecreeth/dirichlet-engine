@@ -48,7 +48,7 @@
 \title{\textbf{Parallel DAG Scheduling and Direct Coordinate Geometry for Sublinear Dirichlet Summatory Algorithms}}
 
 \author{
-    \textbf{Luis Canario} \\
+    \textbf{Luis Canario}\thanks{Corresponding author: \texttt{luismiguel1730@gmail.com}} \\
     Independent Researcher \\
     \texttt{\small \href{https://github.com/ecreeth/dirichlet-engine}{https://github.com/ecreeth/dirichlet-engine}}
 }
@@ -81,19 +81,19 @@ Let $g: \N \to \C$ be an arithmetic function. Evaluating its summatory function:
 \begin{equation}
     G(X) = \sum_{n \le X} g(n)
 \end{equation}
-at large bounds $X \ge 10^{12}$ is a central problem across computational number theory. Classical instances include:
+at large bounds $X \ge 10^{12}$ is a central problem across computational and analytic number theory \cite{crandall2005prime}. Classical instances include:
 \begin{itemize}
     \item The \textbf{Mertens function} $M(X) = \sum_{n \le X} \mu(n)$, where $\mu$ is the M{\"o}bius function. Bounding $\abs{M(X)} = \Oh(X^{1/2+\varepsilon})$ is equivalent to the Riemann Hypothesis \cite{mertens1897uber, deleglise1996computing}.
     \item The \textbf{Totient summatory function} $\Phi(X) = \sum_{n \le X} \phi(n)$, governing the asymptotic number of coprime integer pairs in grid lattices \cite{pritchard1987linear}.
     \item The \textbf{Liouville summatory function} $L(X) = \sum_{n \le X} \lambda(n)$, measuring prime-factor parity bias and connected to P{\'o}lya's conjecture.
-    \item The \textbf{Prime counting function} $\pi(X) = \sum_{p \le X} 1$ \cite{lucy2011algorithm}.
+    \item The \textbf{Prime counting function} $\pi(X) = \sum_{p \le X} 1$ \cite{lucy2011algorithm, lagarias1985computing}.
 \end{itemize}
 
 \subsection{Prior Work and Asymptotic Complexity}
 Evaluating $G(X)$ by term-by-term summation requires $\Oh(X)$ operations. In modern computational number theory, sublinear methods bypass evaluating each individual $g(n)$:
 \begin{enumerate}
-    \item \textbf{Analytical \& Combinatorial Partitioning:} For specific functions like $\mu(n)$ and prime indicators, combinatorial identities (such as Vaughan's or Buchstab's identity) combined with smooth numerical integration achieve $\Oh(X^{2/3} / \log^A X)$ operations \cite{deleglise1996computing, kotnik2004order, kuznetsov2011computing}.
-    \item \textbf{Hyperbolic Dynamic Programming (Lucy DP / Min-25):} For general Dirichlet convolutions $h = f * g$, grouping lattice points under integer hyperbolas yields an exact sublinear recurrence over the quotient space $\V(X) = \{\floor{X/i} : 1 \le i \le X\}$ in $\Oh(X^{3/4})$ operations and $\Oh(\sqrt{X})$ memory \cite{lucy2011algorithm, min25sieve}.
+    \item \textbf{Analytical \& Combinatorial Partitioning:} For specific functions like $\mu(n)$ and prime indicators, combinatorial identities (such as Vaughan's, Buchstab's, or Meissel--Lehmer identities) combined with smooth numerical integration achieve $\Oh(X^{2/3} / \log^A X)$ operations \cite{deleglise1996computing, kotnik2004order, kuznetsov2011computing, lagarias1985computing}.
+    \item \textbf{Hyperbolic Dynamic Programming (Lucy DP / Min-25):} Originating from Dirichlet's divisor hyperbola method \cite{dirichlet1849uber}, grouping lattice points under integer hyperbolas for general Dirichlet convolutions $h = f * g$ yields an exact sublinear recurrence over the quotient space $\V(X) = \{\floor{X/i} : 1 \le i \le X\}$ in $\Oh(X^{3/4})$ operations and $\Oh(\sqrt{X})$ memory \cite{lucy2011algorithm, min25sieve, crandall2005prime}.
 \end{enumerate}
 
 \paragraph{Parallel and High-Performance Implementations.}
@@ -134,12 +134,12 @@ The set $\V(X)$ decomposes into:
 \end{enumerate}
 The total cardinality $N = \abs{\V(X)}$ satisfies:
 \begin{equation}
-    N = S + \floor{\frac{X}{S}} - \left[ S = \floor{\frac{X}{S}} \right] = 2\floor{\sqrt{X}} + \Oh(1)
+    N = S + \floor{\frac{X}{S+1}} = 2\floor{\sqrt{X}} + \Oh(1)
 \end{equation}
 \end{lemma}
 
 \begin{proof}
-For $i > \floor{X/(S+1)}$, the quotient $q = \floor{X/i} \le S$. For any integer $k \in \{1, \dots, S\}$, setting $i = \floor{X/k}$ yields $\floor{X/\floor{X/k}} = k$, proving every integer $\le S$ is present. For $i \le S$, the values $\floor{X/i}$ are strictly decreasing with $i$ because $X/i - X/(i+1) = X/(i(i+1)) \ge X/(S(S+1)) > 0$. When $i \le \sqrt{X}-1$, the difference exceeds $1$, ensuring distinct integers $> S$. Summing both segments gives $N$.
+For $i > \floor{X/(S+1)}$, the quotient $q = \floor{X/i} \le S$. For any integer $k \in \{1, \dots, S\}$, setting $i = \floor{X/k}$ yields $\floor{X/\floor{X/k}} = k$, proving every integer $\le S$ is present. For $i \le \floor{X/(S+1)}$, we have $\floor{X/i} > S$. Moreover, for $i \le S$, the values $\floor{X/i}$ are strictly decreasing with $i$ because $X/i - X/(i+1) = X/(i(i+1)) \ge X/(S(S+1)) > 0$; when $i \le \sqrt{X}-1$, the difference exceeds $1$, ensuring each $\floor{X/i}$ is a distinct integer $> S$. Summing the $S$ dense prefix elements $\{1, \dots, S\}$ and the $\floor{X/(S+1)}$ distinct sparse suffix elements gives the exact cardinality $N = S + \floor{X/(S+1)}$.
 \end{proof}
 
 This structural decomposition and its corresponding array coordinate layout are illustrated in Figure~\ref{fig:bijection}.
@@ -211,25 +211,29 @@ The dependency structure of Recurrence \eqref{eq:recurrence} across state doubli
 
 \begin{figure}[htbp]
 \centering
-\begin{tikzpicture}[scale=0.9, every node/.style={scale=0.85}]
+\begin{tikzpicture}[scale=0.88, every node/.style={scale=0.82}]
+    % Stage 0
+    \node[draw, fill=green!10, thick, rounded corners, minimum width=2.4cm, minimum height=0.9cm] (S0) at (-2.4, 0) {Stage 0: $v = 1$};
     % Stage 1
-    \node[draw, fill=green!15, thick, rounded corners, minimum width=3cm, minimum height=0.9cm] (S1) at (0, 0) {Stage 1: $v \in (1, 2]$};
+    \node[draw, fill=green!20, thick, rounded corners, minimum width=2.6cm, minimum height=0.9cm] (S1) at (0.8, 0) {Stage 1: $v = 2$};
     % Stage 2
-    \node[draw, fill=green!25, thick, rounded corners, minimum width=3.5cm, minimum height=0.9cm] (S2) at (4, 0) {Stage 2: $v \in (2, 4]$};
+    \node[draw, fill=green!30, thick, rounded corners, minimum width=3.2cm, minimum height=0.9cm] (S2) at (4.5, 0) {Stage 2: $v \in (2, 4]$};
     % Stage 3
-    \node[draw, fill=green!35, thick, rounded corners, minimum width=4cm, minimum height=0.9cm] (S3) at (8.5, 0) {Stage 3: $v \in (4, 8]$};
+    \node[draw, fill=green!40, thick, rounded corners, minimum width=3.4cm, minimum height=0.9cm] (S3) at (8.5, 0) {Stage 3: $v \in (4, 8]$};
     % Stage K
-    \node[draw, fill=green!45, thick, rounded corners, minimum width=4.5cm, minimum height=0.9cm] (SK) at (13.5, 0) {Stage $K$: $v \in (X/2, X]$};
+    \node[draw, fill=green!50, thick, rounded corners, minimum width=4.0cm, minimum height=0.9cm] (SK) at (13.0, 0) {Stage $K$: $v \in (X/2, X]$};
     
     % Dependencies
+    \draw[->, thick, >=stealth, blue!70!black] (S0) -- (S1);
     \draw[->, thick, >=stealth, blue!70!black] (S1) -- node[above] {\small safe} (S2);
     \draw[->, thick, >=stealth, blue!70!black] (S2) -- node[above] {\small safe} (S3);
     \draw[->, thick, dashed, >=stealth, blue!70!black] (S3) -- (SK);
     
-    \node[below=0.6cm of S1, text width=3cm, align=center, text=gray!80!black] {Sequential Base Case};
-    \node[below=0.6cm of S2, text width=3.5cm, align=center, text=gray!80!black] {Lock-free Multi-threading};
-    \node[below=0.6cm of S3, text width=4cm, align=center, text=gray!80!black] {Lock-free Multi-threading};
-    \node[below=0.6cm of SK, text width=4.5cm, align=center, text=gray!80!black] {Target Antichain ($v=X$)};
+    \node[below=0.6cm of S0, text width=2.4cm, align=center, text=gray!80!black] {Trivial Base Case};
+    \node[below=0.6cm of S1, text width=2.6cm, align=center, text=gray!80!black] {Direct Step};
+    \node[below=0.6cm of S2, text width=3.2cm, align=center, text=gray!80!black] {Lock-free Multi-threading};
+    \node[below=0.6cm of S3, text width=3.4cm, align=center, text=gray!80!black] {Lock-free Multi-threading};
+    \node[below=0.6cm of SK, text width=4.0cm, align=center, text=gray!80!black] {Target Antichain ($v=X$)};
 \end{tikzpicture}
 \caption{The Logarithmic Doubling-Stage Dependency Graph: each stage $\V_m$ forms an independent antichain evaluated in parallel without inter-thread locking.}
 \label{fig:dag}
@@ -241,20 +245,21 @@ In Recurrence \eqref{eq:recurrence}, every sub-state $q = \floor{v/k}$ for $k \g
 \begin{equation}
     q \le \floor{\frac{v}{2}}
 \end{equation}
-Let $K = \ceil{\log_2 X}$. Partition $\V(X)$ into $K$ disjoint subsets:
+Let $K = \ceil{\log_2 X}$. Partition $\V(X)$ into $K+1$ disjoint subsets:
 \begin{equation}
-    \V_m \triangleq \left\{ v \in \V(X) : 2^{m-1} < v \le 2^m \right\}, \quad 1 \le m \le K
+    \V_0 \triangleq \{1\}, \quad \V_m \triangleq \left\{ v \in \V(X) : 2^{m-1} < v \le 2^m \right\}, \quad 1 \le m \le K
 \end{equation}
 Then:
 \begin{enumerate}
-    \item Every dependency $q = \floor{v/k}$ for $v \in \V_m$ strictly belongs to $\bigcup_{j=1}^{m-1} \V_j$.
+    \item For $v \in \V_0 = \{1\}$, $G(1) = (f*g)(1)/f(1) = g(1)$ is the trivial base case.
+    \item For every $m \ge 1$ and every $v \in \V_m$, all dependencies $q = \floor{v/k}$ ($k \ge 2$) strictly belong to $\bigcup_{j=0}^{m-1} \V_j$.
     \item The induced dependency subgraph on $\V_m$ contains zero edges ($\mathcal{E} \cap (\V_m \times \V_m) = \emptyset$).
-    \item All states in $\V_m$ can be evaluated concurrently in parallel without mutexes or thread communication.
+    \item All states in $\V_m$ can be evaluated concurrently in parallel without mutexes, atomic operations, or inter-thread communication.
 \end{enumerate}
 \end{theorem}
 
 \begin{proof}
-For any $v \in \V_m$, $v \le 2^m$. Since $k \ge 2$, $q = \floor{v/k} \le \floor{2^m / 2} = 2^{m-1}$. The subset of states $\{u \in \V(X) : u \le 2^{m-1}\}$ is precisely the union $\bigcup_{j=1}^{m-1} \V_j$. Thus all required sub-state evaluations were fully completed in preceding stages $j < m$. Since no intra-stage dependencies exist, $\V_m$ is an antichain, establishing parallel independence.
+For the base stage $\V_0 = \{1\}$, the recurrence requires no sub-states $q = \floor{v/k}$ ($k \ge 2$) because the inner summation is empty, giving $G(1) = g(1)$. For any stage $m \ge 1$ and any $v \in \V_m$, we have $v \le 2^m$. Since $k \ge 2$, every required sub-state satisfies $q = \floor{v/k} \le \floor{2^m / 2} = 2^{m-1}$. The subset of states $\{u \in \V(X) : u \le 2^{m-1}\}$ is precisely the union $\bigcup_{j=0}^{m-1} \V_j$. Thus all required sub-state evaluations were fully completed in preceding stages $j < m$. Since no intra-stage dependencies exist, $\V_m$ is an antichain in the dependency poset, establishing complete parallel independence.
 \end{proof}
 
 
@@ -286,6 +291,15 @@ The critical path span is bounded by summing the execution times along the longe
 If the inner sum of size $2\sqrt{v}$ is tree-reduced in parallel in $\Oh(\log v)$ time, the span across $K$ stages is $\sum_{m=1}^K \Oh(m) = \Oh(K^2) = \Oh(\log^2 X)$. The speedup ratio $W(X)/T_\infty(X)$ yields the claim.
 \end{proof}
 
+\begin{proposition}[Space Complexity Bounds]
+\label{prop:space}
+The total auxiliary memory $M(X)$ required by Algorithm~\ref{alg:doubling} satisfies:
+\begin{equation}
+    M(X) = \Theta(\sqrt{X})
+\end{equation}
+Specifically, the state array $G$ and state index space $\V(X)$ require $2\abs{\V(X)} = 4\floor{\sqrt{X}} + \Oh(1)$ 64-bit integer words ($\approx 3.2\text{ MB}$ at $X = 10^{12}$ and $\approx 3.2\text{ GB}$ at $X = 10^{18}$). When augmented with a hybrid linear pre-sieve up to cutoff $u = \min(\Oh(X^{2/3}), 10^8)$, auxiliary memory remains $\Oh(u + \sqrt{X})$, requiring at most $1.6\text{ GB}$ of RAM at $X = 10^{16}$.
+\end{proposition}
+
 
 \section{Unified Convolution Engine Architecture}
 \label{sec:engine}
@@ -294,7 +308,7 @@ The algorithmic framework realizing the coordinate bijection (Theorem~\ref{thm:c
 
 \begin{algorithm}[H]
 \SetAlgoLined
-\KwIn{Target $X \in \N$, Convolution identities $f(n)$ and $(f*g)(n)$}
+\KwIn{Target $X \in \N$, Convolution identities $f(n)$ with prefix sum $F(x) = \sum_{n \le x} f(n)$, and $(f*g)(n)$}
 \KwOut{$G(X) = \sum_{n \le X} g(n)$}
 Initialize $\V(X)$ in ascending order; $N \leftarrow |\V(X)|$; $S \leftarrow \floor{\sqrt{X}}$\;
 Allocate array $G[0 \dots N-1]$\;
@@ -312,7 +326,7 @@ $cur\_start \leftarrow$ first index with $V[cur\_start] > 1000$\;
             $q \leftarrow \floor{v / k}$\;
             $next\_k \leftarrow \floor{v / q} + 1$\;
             $idx \leftarrow (q \le S) \ ? \ (q - 1) : (N - \floor{X / q})$\;
-            $total \leftarrow total - (next\_k - k) \times G[idx]$\;
+            $total \leftarrow total - (F(next\_k - 1) - F(k - 1)) \times G[idx]$\;
             $k \leftarrow next\_k$\;
         }
         $G[i] \leftarrow total / f(1)$\;
@@ -320,12 +334,16 @@ $cur\_start \leftarrow$ first index with $V[cur\_start] > 1000$\;
     $cur\_start \leftarrow cur\_end$\;
 }
 \Return $G[N - 1]$\;
-\caption{Parallel Doubling-Stage Dirichlet Engine}
+\caption{Parallel Doubling-Stage Dirichlet Engine (for $f = \mathbf{1}$, $F(next\_k - 1) - F(k - 1) = next\_k - k$)}
 \label{alg:doubling}
 \end{algorithm}
 
 \begin{remark}[Floating-Point Division Correctness]
 Our implementation evaluates $\floor{v/k}$ via IEEE~754 double-precision division when $v \le 2^{53}$. Since both $v$ and $k$ are exactly representable as 64-bit doubles in this range, the quotient $v/k$ incurs at most $\frac{1}{2}$ ulp of relative error. For $v \le 2^{53}$ and $k \ge 1$, this error is strictly less than $1$, so truncation to integer yields the exact floor. For $v > 2^{53}$, the engine falls back to exact 64-bit integer division.
+\end{remark}
+
+\begin{remark}[Dynamic Load Balancing Across Antichains]
+Within any doubling stage $\V_m$, the inner-loop work per state scales as $\Theta(\sqrt{v})$. Across the interval $(2^{m-1}, 2^m]$, the work per state varies by a factor of $\sqrt{2} \approx 1.41\times$. In our multi-core implementation, static chunk partitioning is avoided in favor of guided work-sharing (\texttt{\#pragma omp parallel for schedule(guided)}). This dynamically adjusts chunk sizes to balance non-uniform state workloads across asymmetric cores (such as Apple Silicon Firestorm performance and Icestorm efficiency cores) without barrier stalls.
 \end{remark}
 
 
@@ -536,10 +554,10 @@ The GPU implementation maps the doubling-stage DAG antichains directly onto thre
 \toprule
 \textbf{Target $X$} & \textbf{Exact $M(X)$} & \textbf{CPU OpenMP (8T)} & \textbf{Apple Metal GPU} & \textbf{NVIDIA Tesla T4 (CUDA)} \\
 \midrule
-$10^{12}$ & $62{,}366$   & $0.196$ s & $1.185$ s  & $3.283$ s \\
-$10^{14}$ & $-875{,}575$ & $5.608$ s & $23.899$ s & $34.212$ s \\
-$10^{15}$ & $-3{,}216{,}373$ & $51.943$ s & $264.207$ s & $143.224$ s \\
-$10^{16}$ & $-3{,}195{,}437$ & $511.980$ s & --- & $692.897$ s \\
+$10^{12}$ & $62{,}366$   & $0.202$ s & $1.185$ s  & $3.283$ s \\
+$10^{14}$ & $-875{,}575$ & $6.115$ s & $23.899$ s & $34.212$ s \\
+$10^{15}$ & $-3{,}216{,}373$ & $79.561$ s & $264.207$ s & $143.224$ s \\
+$10^{16}$ & $-3{,}195{,}437$ & $622.431$ s & --- & $692.897$ s \\
 \bottomrule
 \end{tabular}
 \caption{Cross-architecture multi-platform benchmark for Mertens $M(X)$ across CPU OpenMP (Apple M1 8-core), Apple Metal GPU, and NVIDIA Tesla T4 16GB (CUDA). All platforms achieve bit-identical mathematical results across all scales up to $10^{16}$.}
@@ -552,6 +570,12 @@ We have introduced a mathematically rigorous, lock-free parallel framework for D
 
 Future work includes extending the doubling framework to $\Oh(X^{2/3})$ combinatorial sieves \cite{deleglise1996computing, hurst2026practical} and developing multi-node MPI clusters for computations beyond $X \ge 10^{18}$.
 
+\section*{Data and Software Availability}
+The complete source code, test suites, multi-platform GPU compute kernels (Apple Metal and NVIDIA CUDA), and automated benchmark reproduction scripts are released as open source under the MIT License and are publicly available on GitHub at \url{https://github.com/ecreeth/dirichlet-engine}.
+
+\section*{Declarations}
+\paragraph{Funding.} The author received no specific funding for this research.
+\paragraph{Conflict of Interest.} The author declares that they have no competing financial or non-financial interests.
 
 \bibliographystyle{plain}
 \bibliography{references}
