@@ -70,19 +70,23 @@ public:
             return;
         }
 
-        // Generate distinct values floor(X / i) in descending order
-        std::vector<int64> v_desc;
-        v_desc.reserve(static_cast<size_t>(2 * std::sqrt(static_cast<double>(X)) + 10));
-        for (int64 i = 1; i <= X; ) {
-            int64 v = X / i;
-            v_desc.push_back(v);
-            i = X / v + 1;
+        S = integer_sqrt(X);
+        V.reserve(static_cast<size_t>(2 * S + 5));
+
+        // Prefix dense states: 1, 2, ..., S
+        for (int64 i = 1; i <= S; ++i) {
+            V.push_back(i);
         }
 
-        // Reverse to strictly ascending order [1, 2, ..., S, ..., X]
-        V.assign(v_desc.rbegin(), v_desc.rend());
+        // Suffix sparse states: floor(X / k) for k = S down to 1
+        for (int64 k = S; k >= 1; --k) {
+            int64 v = X / k;
+            if (v > S && v != V.back()) {
+                V.push_back(v);
+            }
+        }
+
         n = static_cast<int>(V.size());
-        S = integer_sqrt(X);
     }
 
     /**
