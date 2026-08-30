@@ -100,7 +100,7 @@ Let $W(X)$ denote the total computational work (number of elementary operations)
    Applying Euler-Maclaurin summation:
    $$\sum_{i=1}^{\sqrt{X}} \sqrt{i} = \frac{2}{3} X^{3/4} + \mathcal{O}(\sqrt{X})$$
    $$\sum_{i=1}^{\sqrt{X}} \sqrt{\frac{X}{i}} = \sqrt{X} \sum_{i=1}^{\sqrt{X}} i^{-1/2} = \sqrt{X} \cdot \left( 2 X^{1/4} + \mathcal{O}(1) \right) = 2 X^{3/4} + \mathcal{O}(\sqrt{X})$$
-   Thus $W(X) = \frac{8}{3} X^{3/4} + \mathcal{O}(\sqrt{X}) = \Theta(X^{3/4})$.
+   Thus $W(X) = 2 \cdot \left(\frac{2}{3} + 2\right) X^{3/4} + \mathcal{O}(\sqrt{X}) = \frac{16}{3} X^{3/4} + \mathcal{O}(\sqrt{X}) = \Theta(X^{3/4})$.
 
 2. **Span with Sequential Inner Grouping:**  
    The critical path is the sum of inner loop execution times along the longest chain from stage $1$ to $K$:

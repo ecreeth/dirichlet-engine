@@ -52,10 +52,9 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 ├── dirichlet_engine.hpp       # Core C++20 header-only template library
 ├── bench.cpp                  # Multi-threaded C++ CLI benchmark tool
 ├── test_engine.cpp            # 25-case unit test suite (Mertens, PrimePi, Totient, Liouville)
-├── reproduce_paper_bench.cpp  # Reproduces LaTeX Table 1 for paper.tex / paper.md
+├── reproduce_paper_bench.cpp  # Reproduces LaTeX Table 1 for paper.tex
 ├── dirichlet.py               # Pure Python reference engine & test suite
 ├── proof.md                   # Formal mathematical proofs (Theorems 1–3)
-├── paper.md                   # Research manuscript (Markdown)
 ├── paper.tex                  # Research manuscript (AMS/SIAM LaTeX + TikZ)
 ├── references.bib             # BibTeX citation database
 └── README.md                  # Project documentation
@@ -141,7 +140,7 @@ int main() {
 
 ## 📜 Theoretical Papers & Proofs
 
-- **[paper.tex](paper.tex) / [paper.md](paper.md):** Full academic preprint titled *"Parallel DAG Scheduling and Direct Coordinate Geometry for Sublinear Dirichlet Summatory Algorithms"*.
+- **[paper.tex](paper.tex):** Full academic manuscript titled *"Parallel DAG Scheduling and Direct Coordinate Geometry for Sublinear Dirichlet Summatory Algorithms"*.
 - **[proof.md](proof.md):** Formal proofs for Coordinate Mapping, DAG Antichains, and PRAM Work-Span Bounds.
 
 ---

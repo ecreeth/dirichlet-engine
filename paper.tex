@@ -97,7 +97,7 @@ Evaluating $G(X)$ by term-by-term summation requires $\Oh(X)$ operations. In mod
 \end{enumerate}
 
 \paragraph{Parallel and High-Performance Implementations.}
-Notable open-source implementations include Walisch's \texttt{primecount} \cite{walisch2024primecount}, which achieves highly optimized single- and multi-threaded evaluation of $\pi(X)$ using the Lagarias--Miller--Odlyzko and Deleglise--Rivat combinatorial methods in $\Oh(X^{2/3} / \log^2 X)$ time. For the Mertens function, Hurst~\cite{hurst2026practical} recently computed $M(10^{25})$ using advanced sieving and analytic techniques. Our work complements these efforts by providing a general-purpose parallel framework for \emph{arbitrary} Dirichlet convolutions at $\Oh(X^{3/4})$ complexity, rather than targeting a single arithmetic function.
+Notable open-source implementations include Walisch's \texttt{primecount} \cite{walisch2024primecount}, which achieves highly optimized single- and multi-threaded evaluation of $\pi(X)$ using the Lagarias--Miller--Odlyzko and Del{\'e}glise--Rivat combinatorial methods in $\Oh(X^{2/3} / \log^2 X)$ time. For the Mertens function, Hurst~\cite{hurst2026practical} recently computed $M(10^{25})$ using advanced sieving and analytic techniques. Our work complements these efforts by providing a general-purpose parallel framework for \emph{arbitrary} Dirichlet convolutions at $\Oh(X^{3/4})$ complexity, rather than targeting a single arithmetic function.
 
 \subsection{The Addressing and Parallelization Dilemma}
 While hyperbolic DP applies to any multiplicative Dirichlet convolution, existing implementations face two practical barriers:
@@ -267,7 +267,7 @@ Let $W(X)$ denote total computational work and $T_\infty(X)$ denote the critical
 \label{thm:complexity}
 The parallel doubling-stage Dirichlet hyperbola algorithm satisfies:
 \begin{enumerate}
-    \item \textbf{Total Work:} $W(X) = \frac{8}{3} X^{3/4} + \Oh(\sqrt{X}) = \Theta(X^{3/4})$.
+    \item \textbf{Total Work:} $W(X) = \frac{16}{3} X^{3/4} + \Oh(\sqrt{X}) = \Theta(X^{3/4})$.
     \item \textbf{Span (Sequential Grouping):} $T_\infty(X) = \Theta(\sqrt{X})$.
     \item \textbf{Span (Tree-Reduced Grouping):} $T_\infty(X) = \Oh(\log^2 X)$.
     \item \textbf{Asymptotic Speedup:} $\mathcal{S}_\infty(X) = \Omega(X^{1/4})$ (or $\Omega(X^{3/4}/\log^2 X)$ with tree reduction).
@@ -275,9 +275,9 @@ The parallel doubling-stage Dirichlet hyperbola algorithm satisfies:
 \end{theorem}
 
 \begin{proof}
-For each state $v \in \V(X)$, grouping identical quotients $\floor{v/k}$ evaluates the sum in $2\sqrt{v} + \Oh(1)$ operations. Summing over all $v \in \V(X)$:
+For each state $v \in \V(X)$, grouping identical quotients $\floor{v/k}$ evaluates the sum in at most $2\sqrt{v} + \Oh(1)$ operations. Summing over all $v \in \V(X)$:
 \begin{equation}
-    W(X) = \sum_{i=1}^{\sqrt{X}} 2\sqrt{i} + \sum_{i=1}^{\sqrt{X}} 2\sqrt{\frac{X}{i}} = \frac{4}{3}X^{3/4} + \frac{4}{3}X^{3/4} + \Oh(\sqrt{X}) = \frac{8}{3}X^{3/4} + \Oh(\sqrt{X})
+    W(X) = \sum_{i=1}^{\sqrt{X}} 2\sqrt{i} + \sum_{i=1}^{\sqrt{X}} 2\sqrt{\frac{X}{i}} = \frac{4}{3}X^{3/4} + 4X^{3/4} + \Oh(\sqrt{X}) = \frac{16}{3}X^{3/4} + \Oh(\sqrt{X})
 \end{equation}
 The critical path span is bounded by summing the execution times along the longest path across the $K = \ceil{\log_2 X}$ stages:
 \begin{equation}
