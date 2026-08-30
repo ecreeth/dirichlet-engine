@@ -60,11 +60,8 @@ int main(int argc, char* argv[]) {
         double M_time = std::chrono::duration<double>(t1 - t0).count();
 
         // Totient Phi(X)
-        std::string phi_str = "---";
-        if (X <= 1000000000000000LL) {
-            int128 Phi_res = DirichletEngine::compute_totient_sum(X, threads);
-            phi_str = to_string_128(Phi_res);
-        }
+        int128 Phi_res = DirichletEngine::compute_totient_sum(X, threads);
+        std::string phi_str = to_string_128(Phi_res);
 
         // Liouville L(X)
         int64 L_res = DirichletEngine::compute_liouville_sum(X, threads);
