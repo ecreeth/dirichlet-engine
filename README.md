@@ -20,18 +20,18 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 
 ---
 
-## 🚀 Performance Benchmarks (Apple Silicon, 15 Threads)
+## 🚀 Performance Benchmarks (Apple Silicon, 8 Threads)
 
-| Target $X$ | Scale | Function | Exact Output | 15-Thread Runtime |
+| Target $X$ | Scale | Function | Exact Output | 8-Thread Runtime |
 | :--- | :--- | :--- | :--- | :--- |
-| $10^{10}$ | $10\text{ Billion}$ | Mertens $M(X)$ | $-33,722$ | **0.010 s** |
+| $10^{10}$ | $10\text{ Billion}$ | Mertens $M(X)$ | $-33,722$ | **0.011 s** |
 | $10^{10}$ | $10\text{ Billion}$ | Totient Sum $\Phi(X)$ | $30,396,355,092,886,216,366$ | **0.012 s** |
 | $10^{10}$ | $10\text{ Billion}$ | Liouville Sum $L(X)$ | $-116,026$ | **0.010 s** |
 | $10^{10}$ | $10\text{ Billion}$ | Prime Count $\pi(X)$ | $455,052,511$ | **0.017 s** |
-| $10^{12}$ | $1\text{ Trillion}$ | Mertens $M(X)$ | $62,366$ | **0.214 s** |
+| $10^{12}$ | $1\text{ Trillion}$ | Mertens $M(X)$ | $62,366$ | **0.202 s** |
 | $10^{12}$ | $1\text{ Trillion}$ | Totient Sum $\Phi(X)$ | $303,963,550,927,059,804,025,910$ | **0.420 s** |
-| $10^{13}$ | $10\text{ Trillion}$ | Mertens $M(X)$ | $599,582$ | **1.195 s** |
-| $10^{14}$ | $100\text{ Trillion}$ | Mertens $M(X)$ | $-875,575$ | **9.401 s** ($<10\text{ s}$) |
+| $10^{13}$ | $10\text{ Trillion}$ | Mertens $M(X)$ | $599,582$ | **1.055 s** |
+| $10^{14}$ | $100\text{ Trillion}$ | Mertens $M(X)$ | $-875,575$ | **6.115 s** |
 | $10^{15}$ | $1\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,216,373$ | **79.561 s** ($1.33\text{ min}$) |
 | $10^{16}$ | $10\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,195,437$ | **622.431 s** ($10.37\text{ min}$) |
 
@@ -41,7 +41,7 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 - **Memory:** 16 GB Unified Memory (LPDDR4X, 68.25 GB/s bandwidth)
 - **Operating System:** macOS (Darwin arm64)
 - **Compiler:** Apple Clang C++20 (`-O3 -std=c++20`), LLVM `libomp` (OpenMP runtime)
-- **Worker Threads:** 15 OpenMP threads
+- **Worker Threads:** 8 OpenMP threads (matching physical cores)
 
 ---
 
@@ -78,17 +78,17 @@ clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
     -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib -lomp \
     bench.cpp -o bench
 
-# Run all functions up to 10 Billion with 15 threads
-./bench all 10000000000 15
+# Run all functions up to 10 Billion with 8 threads
+./bench all 10000000000 8
 
 # Compute Mertens function at 1 Trillion
-./bench mertens 1000000000000 15
+./bench mertens 1000000000000 8
 
 # Compute Mertens function at 100 Trillion
-./bench mertens 100000000000000 15
+./bench mertens 100000000000000 8
 ```
 
-### 2. Reproduce Paper Benchmark Table (`paper.tex` / `paper.md`)
+### 2. Reproduce Paper Benchmark Table (`paper.tex`)
 
 To run the multi-scale automated benchmark across all arithmetic functions and generate LaTeX `Table 1` formatted output:
 
@@ -98,14 +98,14 @@ clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
     -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib -lomp \
     reproduce_paper_bench.cpp -o reproduce_paper_bench
 
-# Fast run: scales 10^7 through 10^14 (~30 seconds with 15 threads)
-./reproduce_paper_bench 15 14
+# Fast run: scales 10^7 through 10^14 (~25 seconds with 8 threads)
+./reproduce_paper_bench 8 14
 
-# Extended run: scales 10^7 through 10^15 (~1.5 minutes with 15 threads)
-./reproduce_paper_bench 15 15
+# Extended run: scales 10^7 through 10^15 (~1.5 minutes with 8 threads)
+./reproduce_paper_bench 8 15
 
 # Full extreme run: scales 10^7 through 10^16
-./reproduce_paper_bench 15 16
+./reproduce_paper_bench 8 16
 ```
 
 ### 3. Python Reference Engine

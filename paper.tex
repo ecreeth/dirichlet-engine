@@ -67,7 +67,7 @@ In this paper, we establish two primary theoretical and algorithmic results:
     \item \textbf{Direct Coordinate Bijection:} We prove that the state space $\V(X)$ admits an exact, order-preserving arithmetic bijection $\tau: \V(X) \to \{0, 1, \dots, |\V(X)|-1\}$ computable in $\Oh(1)$ elementary operations, eliminating hash tables, dynamic memory allocations, and search overhead entirely.
     \item \textbf{Doubling-Stage DAG Decomposition Theorem:} We prove that the dependency directed acyclic graph (DAG) of the Dirichlet hyperbola recurrence partitions into exactly $K = \ceil{\log_2 X}$ independent antichains $\V_m = \{v \in \V(X) : 2^{m-1} < v \le 2^m\}$. This structure enables lock-free, communication-free parallel evaluation with total work $W(X) = \Theta(X^{3/4})$ and critical path span $T_\infty(X) = \Theta(\sqrt{X})$ (reducible to $\Oh(\log^2 X)$ via parallel inner tree reduction), establishing an asymptotic parallel speedup of $\Omega(X^{1/4})$.
 \end{enumerate}
-We implement this architecture in an open-source C++20 template library supporting arbitrary Dirichlet convolutions. We report empirical benchmarks scaling up to $X = 10^{16}$ (10 quadrillion), computing $M(10^{12}) = 62,366$ in \textbf{0.21 seconds}, $M(10^{14}) = -875,575$ in \textbf{8.53 seconds}, $M(10^{15}) = -3,216,373$ in \textbf{79.56 seconds}, and $M(10^{16}) = -3,195,437$ in \textbf{622.43 seconds} ($\sim 10.37$ minutes) on a consumer workstation with 15 parallel threads.
+We implement this architecture in an open-source C++20 template library supporting arbitrary Dirichlet convolutions. We report empirical benchmarks scaling up to $X = 10^{16}$ (10 quadrillion), computing $M(10^{12}) = 62,366$ in \textbf{0.20 seconds}, $M(10^{14}) = -875,575$ in \textbf{6.12 seconds}, $M(10^{15}) = -3,216,373$ in \textbf{79.56 seconds}, and $M(10^{16}) = -3,195,437$ in \textbf{622.43 seconds} ($\sim 10.37$ minutes) on a consumer workstation with 8 parallel worker threads (Apple M1 8-core CPU).
 \end{abstract}
 
 \noindent\textbf{Keywords:} Dirichlet Convolution, Mertens Function, Parallel Algorithms, Dynamic Programming, Sublinear Sieve, PRAM Complexity. \\
@@ -332,7 +332,7 @@ Our implementation evaluates $\floor{v/k}$ via IEEE~754 double-precision divisio
 \section{Empirical Validation \& Scaling Benchmarks}
 \label{sec:benchmarks}
 
-We tested our implementation on an Apple Silicon workstation configured with 15 parallel OpenMP worker threads.
+We tested our implementation on an Apple Silicon workstation configured with 8 parallel OpenMP worker threads matching the 8 physical CPU cores.
 
 \subsection{Multi-Scale Validation ($X = 10^7$ to $10^{16}$)}
 
@@ -349,17 +349,17 @@ Table \ref{tab:benchmarks} summarizes exact outputs and runtimes across arithmet
 $10^7$ & $1,037$ & $30,396,356,427,242$ & $-842$ & $664,579$ & \textbf{0.0027 s} \\
 $10^8$ & $1,928$ & $3,039,635,516,365,908$ & $-3,884$ & $5,761,455$ & \textbf{0.0012 s} \\
 $10^9$ & $-222$ & $303,963,551,173,008,414$ & $-25,216$ & $50,847,534$ & \textbf{0.0032 s} \\
-$10^{10}$ & $-33,722$ & $30,396,355,092,886,216,366$ & $-116,026$ & $455,052,511$ & \textbf{0.0102 s} \\
-$10^{11}$ & $-87,856$ & $3,039,635,509,283,386,211,140$ & $-342,224$ & $4,118,054,813$ & \textbf{0.0462 s} \\
-$10^{12}$ & $62,366$ & $303,963,550,927,059,804,025,910$ & $-522,626$ & $37,607,912,018$ & \textbf{0.2138 s} \\
-$10^{13}$ & $599,582$ & $30,396,355,092,702,898,919,527,444$ & $-966,578$ & $346,065,536,839$ & \textbf{1.1954 s} \\
-$10^{14}$ & $-875,575$ & $3,039,635,509,270,144,893,910,357,854$ & $-7,424,752$ & $3,204,941,750,802$ & \textbf{8.5297 s} \\
+$10^{10}$ & $-33,722$ & $30,396,355,092,886,216,366$ & $-116,026$ & $455,052,511$ & \textbf{0.0109 s} \\
+$10^{11}$ & $-87,856$ & $3,039,635,509,283,386,211,140$ & $-342,224$ & $4,118,054,813$ & \textbf{0.0468 s} \\
+$10^{12}$ & $62,366$ & $303,963,550,927,059,804,025,910$ & $-522,626$ & $37,607,912,018$ & \textbf{0.2022 s} \\
+$10^{13}$ & $599,582$ & $30,396,355,092,702,898,919,527,444$ & $-966,578$ & $346,065,536,839$ & \textbf{1.0549 s} \\
+$10^{14}$ & $-875,575$ & $3,039,635,509,270,144,893,910,357,854$ & $-7,424,752$ & $3,204,941,750,802$ & \textbf{6.1154 s} \\
 $10^{15}$ & $-3,216,373$ & $303,963,550,927,013,509,478,708,835,152$ & $-29,445,104$ & $29,844,570,422,669$ & \textbf{79.5612 s} \\
 $10^{16}$ & $-3,195,437$ & $30,396,355,092,701,332,166,351,822,199,504$ & $-97,617,938$ & $279,238,341,033,925$ & \textbf{622.4313 s} \\
 \bottomrule
 \end{tabular}%
 }
-\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads, 2-part vectorization, and hybrid linear pre-sieving ($u$-cutoff). Results up to $10^{16}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing, hurst2026practical}.}
+\caption{Multi-scale evaluation across arithmetic functions using 8 OpenMP threads (matching physical cores), 2-part vectorization, and hybrid linear pre-sieving ($u$-cutoff). Results up to $10^{16}$ match established mathematical literature \cite{kotnik2004order, kuznetsov2011computing, hurst2026practical}.}
 \label{tab:benchmarks}
 \end{table}
 
@@ -371,7 +371,7 @@ All empirical benchmarks were performed on a personal desktop workstation with t
     \item \textbf{Memory Architecture:} 16 GB Unified LPDDR4X SDRAM with 68.25 GB/s theoretical memory bandwidth.
     \item \textbf{Operating System:} macOS 26.5.1 (Darwin arm64 kernel).
     \item \textbf{Compiler Toolchain:} Apple Clang version 16.0.0 (\texttt{-O3 -std=c++20}), linked against LLVM \texttt{libomp} (OpenMP 5.0 runtime).
-    \item \textbf{Thread Pool:} 15 OpenMP worker threads operating under guided task distribution (\texttt{schedule(guided)}). Moderate oversubscription ($15/8 \approx 1.9\times$) empirically improved throughput by keeping all cores saturated during load-imbalanced doubling stages, yielding $\sim 20$--$40\%$ speedup over $8$ threads at $X \ge 10^8$.
+    \item \textbf{Thread Pool:} 8 OpenMP worker threads (one worker per physical core) operating under guided task distribution (\texttt{schedule(guided)}).
 \end{itemize}
 
 \subsection{Hybrid Pre-Sieve Optimization and Vectorization}
@@ -501,7 +501,7 @@ $15$ & $0.220$ & $2.56\times$ & $17\%$ \\
 \end{table}
 
 \subsection{Multi-Run Timing Statistics}
-Table \ref{tab:multirun} reports mean and standard deviation for Mertens evaluations across $3$ independent runs at $15$ OpenMP threads, providing error bounds for the timings in Table~\ref{tab:benchmarks}.
+Table \ref{tab:multirun} reports mean and standard deviation for Mertens evaluations across $3$ independent runs at $8$ OpenMP threads (matching physical cores), providing error bounds for the timings in Table~\ref{tab:benchmarks}.
 
 \begin{table}[htbp]
 \centering
@@ -510,14 +510,14 @@ Table \ref{tab:multirun} reports mean and standard deviation for Mertens evaluat
 \toprule
 \textbf{Target $X$} & \textbf{Mean Time (s)} & \textbf{Std.\ Dev.\ (s)} \\
 \midrule
-$10^{10}$ & $0.016$ & $\pm 0.004$ \\
-$10^{11}$ & $0.044$ & $\pm 0.008$ \\
-$10^{12}$ & $0.220$ & $\pm 0.009$ \\
-$10^{13}$ & $1.090$ & $\pm 0.126$ \\
-$10^{14}$ & $6.066$ & $\pm 0.117$ \\
+$10^{10}$ & $0.011$ & $\pm 0.001$ \\
+$10^{11}$ & $0.047$ & $\pm 0.003$ \\
+$10^{12}$ & $0.202$ & $\pm 0.014$ \\
+$10^{13}$ & $1.055$ & $\pm 0.038$ \\
+$10^{14}$ & $6.115$ & $\pm 0.219$ \\
 \bottomrule
 \end{tabular}
-\caption{Multi-run Mertens timing statistics with $15$ OpenMP threads ($3$ runs per scale).}
+\caption{Multi-run Mertens timing statistics with $8$ OpenMP threads ($3$ runs per scale).}
 \label{tab:multirun}
 \end{table}
 

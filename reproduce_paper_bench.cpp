@@ -21,7 +21,7 @@ struct BenchRow {
 };
 
 int main(int argc, char* argv[]) {
-    int threads = 15;
+    int threads = 8;
     if (argc > 1) threads = std::stoi(argv[1]);
     int max_exp = 16;
     if (argc > 2) max_exp = std::stoi(argv[2]);
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "\\bottomrule\n\\end{tabular}%\n}\n"
-              << "\\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads, 2-part vectorization, and hybrid linear pre-sieving ($u$-cutoff).}\n"
+              << "\\caption{Multi-scale evaluation across arithmetic functions using " << threads << " OpenMP threads (matching physical cores), 2-part vectorization, and hybrid linear pre-sieving ($u$-cutoff).}\n"
               << "\\label{tab:benchmarks}\n\\end{table}\n";
     std::cout.flush();
 
