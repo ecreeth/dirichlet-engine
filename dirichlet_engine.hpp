@@ -633,10 +633,19 @@ public:
 
     /**
      * Prime Counting Function: pi(X) via Sublinear Sieve (Lucy DP)
-     * Optimized with direct prime sieving and tau coordinate resolution.
+     * Parallelized: for each prime p, the inner loop updates S_arr[i] using
+     * S_arr[idx_q] where idx_q < i. Since we process i from high to low and
+     * only read from lower (unmodified) indices, all updates are independent.
      */
-    static int64 compute_prime_pi(int64 X) {
+    static int64 compute_prime_pi(int64 X, int num_threads = 0) {
         if (X < 2) return 0;
+        int threads = (num_threads > 0 ? num_threads :
+#ifdef _OPENMP
+            omp_get_max_threads()
+#else
+            1
+#endif
+        );
         int64 S = integer_sqrt(X);
         QuotientSpace qs(X);
         const int n = qs.n;
@@ -661,12 +670,49 @@ public:
             int64 sp = S_arr[p - 2];
             int64 p2 = static_cast<int64>(p) * p;
 
-            for (int i = n - 1; i >= 0; --i) {
-                int64 v = qs.V[i];
-                if (v < p2) break;
-                int64 q = v / p;
-                int idx_q = (q <= S) ? static_cast<int>(q - 1) : (n - static_cast<int>(X / q));
-                S_arr[i] -= (S_arr[idx_q] - sp);
+            // Find the range of indices to update: all i where V[i] >= p^2
+            int first_i = 0;
+            {
+                int lo = 0, hi = n - 1;
+                while (lo < hi) {
+                    int mid = (lo + hi) / 2;
+                    if (qs.V[mid] < p2) lo = mid + 1;
+                    else hi = mid;
+                }
+                first_i = lo;
+            }
+            int count = n - first_i;
+
+            // For small primes, read indices can fall within the modification
+            // range [first_i, n-1] (when V[i] >= p^3). Snapshot the modifiable
+            // portion so all parallel reads see pre-modification values.
+            // For large primes (p > X^{1/3}), all V[i] < p^3, so reads land
+            // below first_i and no snapshot is needed.
+            int64 p3 = p2 * p;
+            bool needs_snapshot = (qs.V[n - 1] >= p3);
+
+            if (needs_snapshot && count > 64 && threads > 1) {
+                std::vector<int64> snap(S_arr.begin() + first_i, S_arr.end());
+
+                #ifdef _OPENMP
+                #pragma omp parallel for schedule(guided) num_threads(threads)
+                #endif
+                for (int j = 0; j < count; ++j) {
+                    int i = first_i + j;
+                    int64 v = qs.V[i];
+                    int64 q = v / p;
+                    int idx_q = (q <= S) ? static_cast<int>(q - 1) : (n - static_cast<int>(X / q));
+                    int64 read_val = (idx_q >= first_i) ? snap[idx_q - first_i] : S_arr[idx_q];
+                    S_arr[i] -= (read_val - sp);
+                }
+            } else {
+                // Safe without snapshot: sequential, or reads don't overlap writes
+                for (int i = n - 1; i >= first_i; --i) {
+                    int64 v = qs.V[i];
+                    int64 q = v / p;
+                    int idx_q = (q <= S) ? static_cast<int>(q - 1) : (n - static_cast<int>(X / q));
+                    S_arr[i] -= (S_arr[idx_q] - sp);
+                }
             }
         }
 

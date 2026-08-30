@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
         run_benchmark("Liouville Sum L", [&]() { return DirichletEngine::compute_liouville_sum(X, threads); });
     }
     if (mode == "all" || mode == "prime_pi") {
-        run_benchmark("PrimeCount pi", [&]() { return DirichletEngine::compute_prime_pi(X); });
+        run_benchmark("PrimeCount pi", [&]() { return DirichletEngine::compute_prime_pi(X, threads); });
     }
     if (mode == "all" || mode == "divisor") {
         run_benchmark("Divisor Sum D", [&]() { return DirichletEngine::compute_divisor_sum(X); });

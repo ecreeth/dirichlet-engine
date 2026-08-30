@@ -67,14 +67,7 @@ int main(int argc, char* argv[]) {
         int64 L_res = DirichletEngine::compute_liouville_sum(X, threads);
 
         // PrimePi pi(X)
-        int64 pi_res = 0;
-        if (X <= 100000000000000LL) {
-            pi_res = DirichletEngine::compute_prime_pi(X);
-        } else if (X == 1000000000000000LL) {
-            pi_res = 29844570422669LL;
-        } else if (X == 10000000000000000LL) {
-            pi_res = 279238341033925LL;
-        }
+        int64 pi_res = DirichletEngine::compute_prime_pi(X, threads);
 
         std::cout << "$" << label << "$ & "
                   << M_res << " & "
