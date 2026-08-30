@@ -17,6 +17,10 @@ test_bench
 test_direct_idx
 test_doubling
 test_omp_bug
+reproduce_paper_bench
+test_engine
+test_fix
+bench_paper
 *.dSYM/
 
 # Python Cache & Virtual Environments
