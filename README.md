@@ -51,6 +51,7 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 .
 ├── dirichlet_engine.hpp       # Core C++20 header-only template library
 ├── bench.cpp                  # Multi-threaded C++ CLI benchmark tool
+├── test_engine.cpp            # 25-case unit test suite (Mertens, PrimePi, Totient, Liouville)
 ├── reproduce_paper_bench.cpp  # Reproduces LaTeX Table 1 for paper.tex / paper.md
 ├── dirichlet.py               # Pure Python reference engine & test suite
 ├── proof.md                   # Formal mathematical proofs (Theorems 1–3)
@@ -64,10 +65,16 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 
 ## 🛠️ Build & Quickstart
 
-### 1. C++ Multi-Threaded Engine
+### 1. C++ Multi-Threaded Engine & Unit Tests
 
 ```bash
-# Compile with OpenMP & C++20
+# Compile and run comprehensive unit tests
+clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
+    -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib -lomp \
+    test_engine.cpp -o test_engine
+./test_engine
+
+# Compile benchmark tool with OpenMP & C++20
 clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
     -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib -lomp \
     bench.cpp -o bench
@@ -143,11 +150,11 @@ int main() {
 
 1. D{\'e}l{\'e}glise, M., \& Rivat, J. (1996). *Computing the summation of the M{\"o}bius function*. Experimental Mathematics, 5(4), 291-295.
 2. Kotnik, T., \& van de Lune, J. (2004). *On the order of the Mertens function*. Experimental Mathematics, 13(4), 473-481.
-3. Lucy, W. (1994). *A new algorithm for the prime counting function*. Unpublished manuscript.
-4. Min\_25. (2016). *A modified sieve for summatory functions of multiplicative functions*. Technical Notes.
-5. Mertens, F. (1897). *{\"U}ber eine zahlentheoretische Function*. Sitzungsberichte der Kaiserlichen Akademie der Wissenschaften.
-6. Kuznetsov, E. (2011). *Computing the Mertens Function up to $10^{16}$*. Mathematics of Computation, 80(276), 2461-2468.
-7. Hurst, G. (2026). *Practical Computations of the Mertens Function: $M(10^{24})$ and $M(10^{25})$*. arXiv preprint arXiv:2607.07566.
+3. Mertens, F. (1897). *{\"U}ber eine zahlentheoretische Function*. Sitzungsberichte der Kaiserlichen Akademie der Wissenschaften.
+4. Kuznetsov, E. (2011). *Computing the Mertens Function up to $10^{16}$*. Mathematics of Computation, 80(276), 2461-2468.
+5. Hurst, G. (2026). *Practical Computations of the Mertens Function: $M(10^{24})$ and $M(10^{25})$*. arXiv preprint arXiv:2607.07566.
+6. Walisch, K. (2024). *primecount: Fast Prime Counting Function Implementation*. GitHub repository.
+7. Frigo, M., Leiserson, C. E., Prokop, H., \& Ramachandran, S. (1999). *Cache-oblivious algorithms*. IEEE FOCS.
 
 ---
 
