@@ -50,6 +50,9 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 ```text
 .
 ├── dirichlet_engine.hpp       # Core C++20 header-only template library
+├── cuda_engine.cuh            # NVIDIA CUDA Engine header
+├── cuda_engine.cu             # NVIDIA CUDA implementation (NVIDIA T4 16GB / Turing / Ampere)
+├── bench_cuda.cu              # NVIDIA CUDA CLI benchmark tool
 ├── metal_engine.hpp           # Metal GPU & Heterogeneous Antichain Engine header
 ├── metal_engine.mm            # Objective-C++ Metal compute pipeline implementation
 ├── bench.cpp                  # Multi-threaded C++ CLI benchmark tool
@@ -60,6 +63,7 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 ├── proof.md                   # Formal mathematical proofs (Theorems 1–3)
 ├── paper.tex                  # Research manuscript (AMS/SIAM LaTeX + TikZ)
 ├── references.bib             # BibTeX citation database
+├── Makefile                   # Unified multi-target build system (CPU, Metal, CUDA)
 └── README.md                  # Project documentation
 ```
 
@@ -67,8 +71,46 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 
 ## 🛠️ Build & Quickstart
 
-### 1. C++ Multi-Threaded Engine & Unit Tests
+### 1. NVIDIA CUDA Engine (NVIDIA T4 16GB / Tesla / Linux / Google Colab)
 
+For execution on NVIDIA GPUs (e.g. NVIDIA T4 16GB, V100, A100, RTX):
+
+```bash
+# Compile with NVCC for NVIDIA T4 (Turing sm_75)
+nvcc -O3 -std=c++20 -arch=sm_75 --use_fast_math cuda_engine.cu bench_cuda.cu -o bench_cuda
+
+# Or use the Makefile:
+make cuda
+
+# Run Mertens benchmark at 1 Trillion on NVIDIA GPU
+./bench_cuda 1000000000000 256
+
+# Run Mertens benchmark at 100 Trillion on NVIDIA GPU
+./bench_cuda 100000000000000 256
+```
+
+### 2. C++ Multi-Threaded Engine & Unit Tests
+
+#### On Linux / Google Colab / AWS:
+```bash
+# Compile and run unit tests with g++
+g++ -O3 -std=c++20 -fopenmp test_engine.cpp -o test_engine
+./test_engine
+
+# Compile benchmark tool
+g++ -O3 -std=c++20 -fopenmp bench.cpp -o bench
+
+# Or simply use the Makefile:
+make cpu
+
+# Run Mertens at 1 Trillion
+./bench mertens 1000000000000 8
+
+# Run Mertens at 100 Trillion
+./bench mertens 100000000000000 8
+```
+
+#### On macOS (Apple Silicon):
 ```bash
 # Compile and run comprehensive unit tests
 clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
@@ -76,22 +118,13 @@ clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
     test_engine.cpp -o test_engine
 ./test_engine
 
-# Compile benchmark tool with OpenMP & C++20
+# Compile benchmark tool
 clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
     -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib -lomp \
     bench.cpp -o bench
-
-# Run all functions up to 10 Billion with 8 threads
-./bench all 10000000000 8
-
-# Compute Mertens function at 1 Trillion
-./bench mertens 1000000000000 8
-
-# Compute Mertens function at 100 Trillion
-./bench mertens 100000000000000 8
 ```
 
-### 2. Apple Metal GPU & Heterogeneous Engine (macOS Apple Silicon)
+### 3. Apple Metal GPU & Heterogeneous Engine (macOS Apple Silicon)
 
 ```bash
 # Compile Heterogeneous CPU + Apple Metal GPU benchmark
@@ -104,7 +137,7 @@ clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
 ./bench_gpu 1000000000000 8
 ```
 
-### 3. Reproduce Paper Benchmark Table (`paper.tex`)
+### 4. Reproduce Paper Benchmark Table (`paper.tex`)
 
 To run the multi-scale automated benchmark across all arithmetic functions and generate LaTeX `Table 1` formatted output:
 

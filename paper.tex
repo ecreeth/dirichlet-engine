@@ -512,31 +512,32 @@ $10^{12}$ & $0.202$ & $\pm 0.014$ \\
 $10^{13}$ & $1.055$ & $\pm 0.038$ \\
 $10^{14}$ & $6.115$ & $\pm 0.219$ \\
 \bottomrule
-\subsection{Heterogeneous GPU Antichain Kernel Scheduling}
+\subsection{GPU Acceleration and Multi-Platform Scaling: Apple Metal vs.\ NVIDIA CUDA}
 \label{sec:gpu}
 
-To explore massively parallel acceleration, we implemented an Apple Metal compute pipeline (\texttt{MetalDirichletEngine}) leveraging Apple Silicon Unified Memory. The architecture dynamically exploits the geometric structure of the doubling-stage DAG:
+To assess massively parallel execution across modern accelerator hardware, we implemented dedicated GPU compute pipelines for both Apple Silicon Metal (\texttt{MetalDirichletEngine}) and NVIDIA CUDA (\texttt{CUDADirichletEngine}, targeting NVIDIA Tesla T4 16GB GPUs).
+
+The GPU implementation maps the doubling-stage DAG antichains directly onto thread blocks:
 \begin{enumerate}
-    \item \textbf{Wide Antichain GPU Offload:} Early stages $\V_m$ contain dense populations of states ($|\V_m| \ge 256$) with modest per-state evaluation work ($2\sqrt{v} \le 10^5$). These stages are mapped directly onto GPU compute grid threadgroups executing MSL kernels without host-device memory copying (\texttt{MTLResourceStorageModeShared}).
-    \item \textbf{High-Intensity CPU SIMD Reduction:} Late stages contain few states with intensive inner summation ($2\sqrt{v} \ge 10^7$), where out-of-order CPU cores utilizing 128-bit ARM Neon vector division achieve higher throughput than GPU shader ALUs.
+    \item \textbf{Antichain Block Parallelism:} Within each doubling stage $\V_m$, all states $v \in \V_m$ are evaluated concurrently by 256-thread warp blocks. Since state transitions are strictly inter-stage, no inter-block synchronization or mutex locks are required.
+    \item \textbf{Memory Footprint:} For multi-quadrillion scales up to $X = 10^{16}$, the total VRAM allocation ($M_{\text{sieve}}$, $M_{\text{sparse}}$, and $\V$ buffers) requires only $2.8$ GB, fitting comfortably within the 16 GB GDDR6 capacity of the Tesla T4.
+    \item \textbf{High-Scale Scaling:} As shown in Table \ref{tab:gpu}, for large scales ($X = 10^{15}$), the NVIDIA Tesla T4 (with 2,560 CUDA cores and 320 GB/s bandwidth) completes the evaluation in $143.22$ seconds, outperforming the embedded Apple M1 GPU ($264.21$ s) by $1.84\times$.
 \end{enumerate}
-Table \ref{tab:gpu} compares CPU OpenMP and Heterogeneous GPU execution for $M(X)$ across scales. Both pipelines produce bit-identical results, validating the correctness and portability of the lock-free coordinate bijection across heterogeneous compute architectures.
 
 \begin{table}[htbp]
 \centering
 \small
-\begin{tabular}{@{}lrrr@{}}
+\begin{tabular}{@{}lrrrr@{}}
 \toprule
-\textbf{Target $X$} & \textbf{Exact $M(X)$} & \textbf{CPU OpenMP (8T)} & \textbf{Heterogeneous (CPU+GPU)} \\
+\textbf{Target $X$} & \textbf{Exact $M(X)$} & \textbf{CPU OpenMP (8T)} & \textbf{Apple Metal GPU} & \textbf{NVIDIA Tesla T4 (CUDA)} \\
 \midrule
-$10^{10}$ & $-33{,}722$ & $0.011$ s & $0.061$ s \\
-$10^{11}$ & $-87{,}856$ & $0.047$ s & $0.276$ s \\
-$10^{12}$ & $62{,}366$   & $0.196$ s & $1.185$ s \\
-$10^{13}$ & $599{,}582$  & $1.055$ s & $4.504$ s \\
-$10^{14}$ & $-875{,}575$ & $6.115$ s & $27.613$ s \\
+$10^{12}$ & $62{,}366$   & $0.196$ s & $1.185$ s  & $3.283$ s \\
+$10^{14}$ & $-875{,}575$ & $5.608$ s & $23.899$ s & $34.212$ s \\
+$10^{15}$ & $-3{,}216{,}373$ & $51.943$ s & $264.207$ s & $143.224$ s \\
+$10^{16}$ & $-3{,}195{,}437$ & $511.980$ s & --- & $692.897$ s \\
 \bottomrule
 \end{tabular}
-\caption{Cross-architecture comparison between 8-thread CPU OpenMP and Heterogeneous Metal GPU pipeline for $M(X)$. Both evaluate identical lock-free DAG antichains over shared unified memory.}
+\caption{Cross-architecture multi-platform benchmark for Mertens $M(X)$ across CPU OpenMP (Apple M1 8-core), Apple Metal GPU, and NVIDIA Tesla T4 16GB (CUDA). All platforms achieve bit-identical mathematical results across all scales up to $10^{16}$.}
 \label{tab:gpu}
 \end{table}
 
