@@ -142,6 +142,8 @@ The total cardinality $N = \abs{\V(X)}$ satisfies:
 For $i > \floor{X/(S+1)}$, the quotient $q = \floor{X/i} \le S$. For any integer $k \in \{1, \dots, S\}$, setting $i = \floor{X/k}$ yields $\floor{X/\floor{X/k}} = k$, proving every integer $\le S$ is present. For $i \le S$, the values $\floor{X/i}$ are strictly decreasing with $i$ because $X/i - X/(i+1) = X/(i(i+1)) \ge X/(S(S+1)) > 0$. When $i \le \sqrt{X}-1$, the difference exceeds $1$, ensuring distinct integers $> S$. Summing both segments gives $N$.
 \end{proof}
 
+This structural decomposition and its corresponding array coordinate layout are illustrated in Figure~\ref{fig:bijection}.
+
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[scale=0.95, every node/.style={scale=0.9}]
@@ -205,6 +207,8 @@ Separating the $d=1$ term yields the standard hyperbolic recurrence for $G(v)$:
     \label{eq:recurrence}
 \end{equation}
 
+The dependency structure of Recurrence \eqref{eq:recurrence} across state doublings is illustrated in Figure~\ref{fig:dag}.
+
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[scale=0.9, every node/.style={scale=0.85}]
@@ -257,7 +261,7 @@ For any $v \in \V_m$, $v \le 2^m$. Since $k \ge 2$, $q = \floor{v/k} \le \floor{
 \section{Work-Span Complexity on the PRAM Model}
 \label{sec:complexity}
 
-Let $W(X)$ denote total computational work and $T_\infty(X)$ denote the critical path length (span) on an idealized PRAM.
+Let $W(X)$ denote total computational work and $T_\infty(X)$ denote the critical path length (span) on an idealized PRAM. Theorem~\ref{thm:complexity} establishes the work-span bounds for the doubling-stage schedule.
 
 \begin{theorem}[Work-Span Bounds]
 \label{thm:complexity}
@@ -286,7 +290,7 @@ If the inner sum of size $2\sqrt{v}$ is tree-reduced in parallel in $\Oh(\log v)
 \section{Unified Convolution Engine Architecture}
 \label{sec:engine}
 
-The algorithmic framework is formalized in Algorithm \ref{alg:doubling}.
+The algorithmic framework realizing the coordinate bijection (Theorem~\ref{thm:coordinate}) and doubling-stage schedule (Theorem~\ref{thm:dag}) is formalized in Algorithm~\ref{alg:doubling}.
 
 \begin{algorithm}[H]
 \SetAlgoLined
@@ -371,7 +375,7 @@ All empirical benchmarks were performed on a personal desktop workstation with t
 \end{itemize}
 
 \subsection{Hybrid Pre-Sieve Optimization and Vectorization}
-Following insights from recent record computations by Hurst \cite{hurst2026practical}, we incorporate a scaled odd-only linear pre-sieve up to cutoff $u = \min(\max(\lfloor\sqrt{X}\rfloor, c(T) \cdot X^{2/3}), 10^8)$. For states $v \le u$, exact prefix sums are evaluated in linear $\Oh(u)$ time ($\sim 0.02$--$0.8$ seconds) and mapped directly into the contiguous state array. This bypasses the hyperbola recursion for the base states and provides branchless $\Oh(1)$ cache hits for all inner loop queries $q \le u$. Coupled with ARM Neon float64 vector division, this delivers a $3\times$--$4\times$ overall runtime reduction across all scales.
+Following insights from recent record computations by Hurst \cite{hurst2026practical}, we incorporate a scaled odd-only linear pre-sieve up to cutoff $u = \min(\max(\lfloor\sqrt{X}\rfloor, c(T) \cdot X^{2/3}), 10^8)$. For states $v \le u$, exact prefix sums are evaluated in linear $\Oh(u)$ time ($\sim 0.02$--$0.8$ seconds) and mapped directly into the contiguous state array. This bypasses the hyperbola recursion for the base states and provides branchless $\Oh(1)$ cache hits for all inner loop queries $q \le u$. Coupled with ARM Neon float64 vector division, this delivers a $3\times$--$4\times$ overall runtime reduction across all scales. A formal memory transfer analysis under the Ideal Cache Model is provided in Section~\ref{sec:cache}.
 
 \subsection{Cache Complexity Analysis under the Ideal Cache Model}
 \label{sec:cache}

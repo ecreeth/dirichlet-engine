@@ -148,7 +148,6 @@ public:
         );
         QuotientSpace qs(X);
         const int n = qs.n;
-        const int64 S = qs.S;
 
         int64 u = choose_pre_sieve_limit(X, threads);
 
@@ -331,7 +330,6 @@ public:
         );
         QuotientSpace qs(X);
         const int n = qs.n;
-        const int64 S = qs.S;
 
         int64 u = choose_pre_sieve_limit(X, threads);
 
@@ -491,7 +489,6 @@ public:
         );
         QuotientSpace qs(X);
         const int n = qs.n;
-        const int64 S = qs.S;
 
         int64 u = choose_pre_sieve_limit(X, threads);
 
