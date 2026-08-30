@@ -434,21 +434,21 @@ $10^{13}$ & $346{,}065{,}536{,}839$ & $0.019$ s & $2.109$ s & $111\times$ (pc) \
 \end{table}
 
 \subsection{Thread-Scaling Analysis}
-Table \ref{tab:scaling} and Figure \ref{fig:scaling_plot} report wall-clock times and speedups for $M(10^{12})$ across thread counts, averaged over $3$ independent runs. Peak performance is achieved at $8$ threads (matching the physical core count of the Apple M1), achieving a $3.00\times$ speedup, with minor efficiency drop under oversubscription at $15$ threads due to task scheduler overhead.
+Table \ref{tab:scaling} and Figure \ref{fig:scaling_plot} report wall-clock times and speedups for $M(10^{12})$ across thread counts up to the $8$ physical cores of the Apple M1, averaged over $3$ independent runs. Peak performance is achieved at $8$ threads (matching the physical core count of the Apple M1), achieving a $2.86\times$ speedup.
 
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[scale=0.88]
     % Coordinate axes
-    \draw[->, thick, gray!80] (0,0) -- (16,0) node[right, black] {\small \textbf{Threads ($T$)}};
+    \draw[->, thick, gray!80] (0,0) -- (9.5,0) node[right, black] {\small \textbf{Threads ($T$)}};
     \draw[->, thick, gray!80] (0,0) -- (0,5.5) node[above, black] {\small \textbf{Speedup ($\mathcal{S}$)}};
     
     % Grid lines
     \foreach \y in {1, 2, 3, 4, 5} {
-        \draw[dashed, gray!30] (0,\y) -- (15.5,\y);
+        \draw[dashed, gray!30] (0,\y) -- (9,\y);
         \node[left, scale=0.8] at (0,\y) {$\y\times$};
     }
-    \foreach \x in {1, 2, 4, 8, 15} {
+    \foreach \x in {1, 2, 4, 8} {
         \draw[dashed, gray!30] (\x,0) -- (\x,5.2);
         \node[below, scale=0.8] at (\x,0) {$\x$};
     }
@@ -457,28 +457,25 @@ Table \ref{tab:scaling} and Figure \ref{fig:scaling_plot} report wall-clock time
     \draw[dashed, red!70!black, thick] (0,0) -- (5,5) node[above right, scale=0.8, rotate=45] {Ideal Linear ($\mathcal{S}=T$)};
     
     % Measured speedup curve
-    % Points: (1, 1.00), (2, 1.83), (4, 2.81), (8, 3.00), (15, 2.56)
+    % Points: (1, 1.00), (2, 1.67), (4, 2.55), (8, 2.86)
     \draw[very thick, blue!80!black, mark=*, mark size=2.5pt] plot coordinates {
         (1, 1.00)
-        (2, 1.83)
-        (4, 2.81)
-        (8, 3.00)
-        (15, 2.56)
+        (2, 1.67)
+        (4, 2.55)
+        (8, 2.86)
     };
     
     % Value annotations
     \node[above=3pt, blue!90!black, scale=0.75] at (1, 1.00) {$1.00\times$};
-    \node[above=3pt, blue!90!black, scale=0.75] at (2, 1.83) {$1.83\times$};
-    \node[above=3pt, blue!90!black, scale=0.75] at (4, 2.81) {$2.81\times$};
-    \node[above=3pt, blue!90!black, scale=0.75] at (8, 3.00) {\textbf{3.00}$\times$ (peak)};
-    \node[below=4pt, blue!90!black, scale=0.75] at (15, 2.56) {$2.56\times$};
+    \node[above=3pt, blue!90!black, scale=0.75] at (2, 1.67) {$1.67\times$};
+    \node[above=3pt, blue!90!black, scale=0.75] at (4, 2.55) {$2.55\times$};
+    \node[above=3pt, blue!90!black, scale=0.75] at (8, 2.86) {\textbf{2.86}$\times$ (peak)};
     
     % Shaded physical core region
     \draw[fill=green!10, opacity=0.4] (0,0) rectangle (8,5.2);
     \node[green!50!black, scale=0.75, anchor=north west] at (0.2, 5.0) {Physical Cores ($T \le 8$)};
-    \node[orange!70!black, scale=0.75, anchor=north east] at (15.3, 5.0) {Oversubscribed ($T > 8$)};
 \end{tikzpicture}
-\caption{Thread scaling for $M(10^{12})$ on Apple M1 (8 cores). Speedup scales near-linearly up to 4 cores, reaches peak at 8 physical cores ($3.00\times$), and exhibits scheduler contention when oversubscribed.}
+\caption{Thread scaling for $M(10^{12})$ on Apple M1 (8 cores). Speedup scales with thread count, reaching peak performance at 8 physical cores ($2.86\times$).}
 \label{fig:scaling_plot}
 \end{figure}
 
@@ -489,11 +486,10 @@ Table \ref{tab:scaling} and Figure \ref{fig:scaling_plot} report wall-clock time
 \toprule
 \textbf{Threads} & \textbf{Mean Time (s)} & \textbf{Speedup} & \textbf{Efficiency} \\
 \midrule
-$1$  & $0.563$ & $1.00\times$ & $100\%$ \\
-$2$  & $0.307$ & $1.83\times$ & $92\%$ \\
-$4$  & $0.200$ & $2.81\times$ & $70\%$ \\
-$8$  & $0.188$ & $3.00\times$ & $37\%$ \\
-$15$ & $0.220$ & $2.56\times$ & $17\%$ \\
+$1$  & $0.499$ & $1.00\times$ & $100\%$ \\
+$2$  & $0.299$ & $1.67\times$ & $83\%$ \\
+$4$  & $0.195$ & $2.55\times$ & $64\%$ \\
+$8$  & $0.174$ & $2.86\times$ & $36\%$ \\
 \bottomrule
 \end{tabular}
 \caption{Thread-scaling for $M(10^{12})$ on Apple M1 (8 cores). Mean of $3$ runs. Speedup is relative to single-threaded execution.}
