@@ -94,7 +94,11 @@ public:
      * Computes the array index in O(1) arithmetic operations with NO hashing or search.
      */
     inline int tau(int64 q) const noexcept {
-        return (q <= S) ? static_cast<int>(q - 1) : (n - static_cast<int>(X / q));
+        if (q <= S) return static_cast<int>(q - 1);
+        int idx = n - static_cast<int>(X / q);
+        if (__builtin_expect(idx >= n, 0)) idx = n - 1;
+        if (__builtin_expect(idx < 0, 0)) idx = 0;
+        return idx;
     }
 
     inline size_t size() const noexcept {
@@ -105,6 +109,14 @@ public:
         return V[idx];
     }
 };
+
+inline int64 safe_fast_div(int64 v, double dv, int64 k) noexcept {
+    if (__builtin_expect(v <= 9007199254740992LL, 1)) {
+        return static_cast<int64>(dv / static_cast<double>(k));
+    } else {
+        return v / k;
+    }
+}
 
 /**
  * Generalized Dirichlet Hyperbola DP Engine
@@ -117,7 +129,7 @@ private:
         double c_ratio = (threads > 1) ? (0.20 / std::cbrt(static_cast<double>(threads))) : 0.80;
         int64 target_u = static_cast<int64>(c_ratio * std::pow(static_cast<double>(X), 2.0 / 3.0));
         if (target_u < S) target_u = S;
-        return std::min(target_u, 35000000LL);
+        return std::min(target_u, 100000000LL);
     }
 
 public:

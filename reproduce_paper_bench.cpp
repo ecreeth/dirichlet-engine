@@ -85,11 +85,13 @@ int main(int argc, char* argv[]) {
                   << L_res << " & "
                   << pi_res << " & "
                   << "\\textbf{" << std::fixed << std::setprecision(4) << M_time << " s} \\\\\n";
+        std::cout.flush();
     }
 
     std::cout << "\\bottomrule\n\\end{tabular}%\n}\n"
               << "\\caption{Multi-scale evaluation across arithmetic functions using 15 OpenMP threads, 2-part vectorization, and hybrid linear pre-sieving ($u$-cutoff).}\n"
               << "\\label{tab:benchmarks}\n\\end{table}\n";
+    std::cout.flush();
 
     return 0;
 }
