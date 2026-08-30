@@ -32,8 +32,8 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 | $10^{12}$ | $1\text{ Trillion}$ | Totient Sum $\Phi(X)$ | $303,963,550,927,059,804,025,910$ | **0.420 s** |
 | $10^{13}$ | $10\text{ Trillion}$ | Mertens $M(X)$ | $599,582$ | **1.195 s** |
 | $10^{14}$ | $100\text{ Trillion}$ | Mertens $M(X)$ | $-875,575$ | **9.401 s** ($<10\text{ s}$) |
-| $10^{15}$ | $1\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,216,373$ | **91.812 s** ($1.53\text{ min}$) |
-| $10^{16}$ | $10\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,195,437$ | **927.832 s** ($15.46\text{ min}$) |
+| $10^{15}$ | $1\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,216,373$ | **79.561 s** ($1.33\text{ min}$) |
+| $10^{16}$ | $10\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,195,437$ | **622.431 s** ($10.37\text{ min}$) |
 
 ### 💻 Benchmark Hardware Specifications
 - **Processor:** Apple M1 (8 cores: 4 Performance + 4 Efficiency cores)

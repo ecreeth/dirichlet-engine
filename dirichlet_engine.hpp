@@ -214,56 +214,79 @@ public:
                 int64 k_max = static_cast<int64>(dv / static_cast<double>(K + 1));
                 int total = 1;
 
-                int64 k_split = static_cast<int64>(dv / static_cast<double>(u + 1));
-                int64 k_lim = std::min(k_max, k_split);
+                if (v <= 9007199254740992LL) {
+                    int64 k_split = static_cast<int64>(dv / static_cast<double>(u + 1));
+                    int64 k_lim = std::min(k_max, k_split);
 
-                // Part 1a: v/k > u (queried from DP table)
-                for (int64 k = 2; k <= k_lim; ++k) {
-                    int64 q = static_cast<int64>(dv / static_cast<double>(k));
-                    total -= M_dp[n - static_cast<int>(X / q)];
-                }
-                // Part 1b: v/k <= u (queried from linear sieve buffer)
-                int64 k = k_lim + 1;
-                for (; k + 3 <= k_max; k += 4) {
-                    total -= M_sieve[static_cast<int64>(dv / static_cast<double>(k))];
-                    total -= M_sieve[static_cast<int64>(dv / static_cast<double>(k + 1))];
-                    total -= M_sieve[static_cast<int64>(dv / static_cast<double>(k + 2))];
-                    total -= M_sieve[static_cast<int64>(dv / static_cast<double>(k + 3))];
-                }
-                for (; k <= k_max; ++k) {
-                    total -= M_sieve[static_cast<int64>(dv / static_cast<double>(k))];
-                }
+                    // Part 1a: v/k > u (queried from DP table)
+                    for (int64 k = 2; k <= k_lim; ++k) {
+                        int64 q = static_cast<int64>(dv / static_cast<double>(k));
+                        total -= M_dp[n - static_cast<int>(X / q)];
+                    }
+                    // Part 1b: v/k <= u (queried from linear sieve buffer)
+                    int64 k = k_lim + 1;
+                    for (; k + 3 <= k_max; k += 4) {
+                        total -= M_sieve[static_cast<int64>(dv / static_cast<double>(k))];
+                        total -= M_sieve[static_cast<int64>(dv / static_cast<double>(k + 1))];
+                        total -= M_sieve[static_cast<int64>(dv / static_cast<double>(k + 2))];
+                        total -= M_sieve[static_cast<int64>(dv / static_cast<double>(k + 3))];
+                    }
+                    for (; k <= k_max; ++k) {
+                        total -= M_sieve[static_cast<int64>(dv / static_cast<double>(k))];
+                    }
 
-                // Part 2: Dense q <= K (Sequential memory traversal M_sieve[1...K])
-                int64 q = 1;
-                int64 v_div_q = v;
+                    // Part 2: Dense q <= K (Sequential memory traversal M_sieve[1...K])
+                    int64 q = 1;
+                    int64 v_div_q = v;
 
-                #if defined(__ARM_NEON)
-                float64x2_t v_vec = vdupq_n_f64(dv);
-                for (; q + 3 <= K; q += 4) {
-                    float64x2_t d1 = { static_cast<double>(q + 1), static_cast<double>(q + 2) };
-                    float64x2_t d2 = { static_cast<double>(q + 3), static_cast<double>(q + 4) };
-                    float64x2_t res1 = vdivq_f64(v_vec, d1);
-                    float64x2_t res2 = vdivq_f64(v_vec, d2);
-                    
-                    int64 n1 = static_cast<int64>(vgetq_lane_f64(res1, 0));
-                    int64 n2 = static_cast<int64>(vgetq_lane_f64(res1, 1));
-                    int64 n3 = static_cast<int64>(vgetq_lane_f64(res2, 0));
-                    int64 n4 = static_cast<int64>(vgetq_lane_f64(res2, 1));
-                    
-                    total -= static_cast<int>((v_div_q - n1) * M_sieve[q]);
-                    total -= static_cast<int>((n1 - n2) * M_sieve[q + 1]);
-                    total -= static_cast<int>((n2 - n3) * M_sieve[q + 2]);
-                    total -= static_cast<int>((n3 - n4) * M_sieve[q + 3]);
-                    v_div_q = n4;
-                }
-                #endif
+                    #if defined(__ARM_NEON)
+                    float64x2_t v_vec = vdupq_n_f64(dv);
+                    for (; q + 3 <= K; q += 4) {
+                        float64x2_t d1 = { static_cast<double>(q + 1), static_cast<double>(q + 2) };
+                        float64x2_t d2 = { static_cast<double>(q + 3), static_cast<double>(q + 4) };
+                        float64x2_t res1 = vdivq_f64(v_vec, d1);
+                        float64x2_t res2 = vdivq_f64(v_vec, d2);
+                        
+                        int64 n1 = static_cast<int64>(vgetq_lane_f64(res1, 0));
+                        int64 n2 = static_cast<int64>(vgetq_lane_f64(res1, 1));
+                        int64 n3 = static_cast<int64>(vgetq_lane_f64(res2, 0));
+                        int64 n4 = static_cast<int64>(vgetq_lane_f64(res2, 1));
+                        
+                        total -= static_cast<int>((v_div_q - n1) * M_sieve[q]);
+                        total -= static_cast<int>((n1 - n2) * M_sieve[q + 1]);
+                        total -= static_cast<int>((n2 - n3) * M_sieve[q + 2]);
+                        total -= static_cast<int>((n3 - n4) * M_sieve[q + 3]);
+                        v_div_q = n4;
+                    }
+                    #endif
 
-                for (; q <= K; ++q) {
-                    int64 v_div_q_next = static_cast<int64>(dv / static_cast<double>(q + 1));
-                    int64 count = v_div_q - v_div_q_next;
-                    total -= static_cast<int>(count * M_sieve[q]);
-                    v_div_q = v_div_q_next;
+                    for (; q <= K; ++q) {
+                        int64 v_div_q_next = static_cast<int64>(dv / static_cast<double>(q + 1));
+                        int64 count = v_div_q - v_div_q_next;
+                        total -= static_cast<int>(count * M_sieve[q]);
+                        v_div_q = v_div_q_next;
+                    }
+                } else {
+                    // Exact 64-bit integer path for v > 2^53
+                    int64 k_split = v / (u + 1);
+                    int64 k_lim = std::min(k_max, k_split);
+
+                    for (int64 k = 2; k <= k_lim; ++k) {
+                        int64 q = v / k;
+                        total -= M_dp[n - static_cast<int>(X / q)];
+                    }
+                    for (int64 k = k_lim + 1; k <= k_max; ++k) {
+                        total -= M_sieve[v / k];
+                    }
+
+                    int64 q = 1;
+                    int64 v_div_q = v;
+                    for (; q <= K; ++q) {
+                        int64 v_div_q_next = v / (q + 1);
+                        int64 count = v_div_q - v_div_q_next;
+                        total -= static_cast<int>(count * M_sieve[q]);
+                        v_div_q = v_div_q_next;
+                    }
                 }
 
                 M_dp[i] = total;
@@ -357,53 +380,75 @@ public:
                 int64 k_max = static_cast<int64>(dv / static_cast<double>(K + 1));
                 int128 total = static_cast<int128>(v) * (v + 1) / 2;
 
-                int64 k_split = static_cast<int64>(dv / static_cast<double>(u + 1));
-                int64 k_lim = std::min(k_max, k_split);
+                if (v <= 9007199254740992LL) {
+                    int64 k_split = static_cast<int64>(dv / static_cast<double>(u + 1));
+                    int64 k_lim = std::min(k_max, k_split);
 
-                for (int64 k = 2; k <= k_lim; ++k) {
-                    int64 q = static_cast<int64>(dv / static_cast<double>(k));
-                    total -= Phi_dp[n - static_cast<int>(X / q)];
-                }
-                int64 k = k_lim + 1;
-                for (; k + 3 <= k_max; k += 4) {
-                    total -= Phi_sieve[static_cast<int64>(dv / static_cast<double>(k))];
-                    total -= Phi_sieve[static_cast<int64>(dv / static_cast<double>(k + 1))];
-                    total -= Phi_sieve[static_cast<int64>(dv / static_cast<double>(k + 2))];
-                    total -= Phi_sieve[static_cast<int64>(dv / static_cast<double>(k + 3))];
-                }
-                for (; k <= k_max; ++k) {
-                    total -= Phi_sieve[static_cast<int64>(dv / static_cast<double>(k))];
-                }
+                    for (int64 k = 2; k <= k_lim; ++k) {
+                        int64 q = static_cast<int64>(dv / static_cast<double>(k));
+                        total -= Phi_dp[n - static_cast<int>(X / q)];
+                    }
+                    int64 k = k_lim + 1;
+                    for (; k + 3 <= k_max; k += 4) {
+                        total -= Phi_sieve[static_cast<int64>(dv / static_cast<double>(k))];
+                        total -= Phi_sieve[static_cast<int64>(dv / static_cast<double>(k + 1))];
+                        total -= Phi_sieve[static_cast<int64>(dv / static_cast<double>(k + 2))];
+                        total -= Phi_sieve[static_cast<int64>(dv / static_cast<double>(k + 3))];
+                    }
+                    for (; k <= k_max; ++k) {
+                        total -= Phi_sieve[static_cast<int64>(dv / static_cast<double>(k))];
+                    }
 
-                int64 q = 1;
-                int64 v_div_q = v;
+                    int64 q = 1;
+                    int64 v_div_q = v;
 
-                #if defined(__ARM_NEON)
-                float64x2_t v_vec = vdupq_n_f64(dv);
-                for (; q + 3 <= K; q += 4) {
-                    float64x2_t d1 = { static_cast<double>(q + 1), static_cast<double>(q + 2) };
-                    float64x2_t d2 = { static_cast<double>(q + 3), static_cast<double>(q + 4) };
-                    float64x2_t res1 = vdivq_f64(v_vec, d1);
-                    float64x2_t res2 = vdivq_f64(v_vec, d2);
-                    
-                    int64 n1 = static_cast<int64>(vgetq_lane_f64(res1, 0));
-                    int64 n2 = static_cast<int64>(vgetq_lane_f64(res1, 1));
-                    int64 n3 = static_cast<int64>(vgetq_lane_f64(res2, 0));
-                    int64 n4 = static_cast<int64>(vgetq_lane_f64(res2, 1));
-                    
-                    total -= static_cast<int128>(v_div_q - n1) * Phi_sieve[q];
-                    total -= static_cast<int128>(n1 - n2) * Phi_sieve[q + 1];
-                    total -= static_cast<int128>(n2 - n3) * Phi_sieve[q + 2];
-                    total -= static_cast<int128>(n3 - n4) * Phi_sieve[q + 3];
-                    v_div_q = n4;
-                }
-                #endif
+                    #if defined(__ARM_NEON)
+                    float64x2_t v_vec = vdupq_n_f64(dv);
+                    for (; q + 3 <= K; q += 4) {
+                        float64x2_t d1 = { static_cast<double>(q + 1), static_cast<double>(q + 2) };
+                        float64x2_t d2 = { static_cast<double>(q + 3), static_cast<double>(q + 4) };
+                        float64x2_t res1 = vdivq_f64(v_vec, d1);
+                        float64x2_t res2 = vdivq_f64(v_vec, d2);
+                        
+                        int64 n1 = static_cast<int64>(vgetq_lane_f64(res1, 0));
+                        int64 n2 = static_cast<int64>(vgetq_lane_f64(res1, 1));
+                        int64 n3 = static_cast<int64>(vgetq_lane_f64(res2, 0));
+                        int64 n4 = static_cast<int64>(vgetq_lane_f64(res2, 1));
+                        
+                        total -= static_cast<int128>(v_div_q - n1) * Phi_sieve[q];
+                        total -= static_cast<int128>(n1 - n2) * Phi_sieve[q + 1];
+                        total -= static_cast<int128>(n2 - n3) * Phi_sieve[q + 2];
+                        total -= static_cast<int128>(n3 - n4) * Phi_sieve[q + 3];
+                        v_div_q = n4;
+                    }
+                    #endif
 
-                for (; q <= K; ++q) {
-                    int64 v_div_q_next = static_cast<int64>(dv / static_cast<double>(q + 1));
-                    int64 count = v_div_q - v_div_q_next;
-                    total -= static_cast<int128>(count) * Phi_sieve[q];
-                    v_div_q = v_div_q_next;
+                    for (; q <= K; ++q) {
+                        int64 v_div_q_next = static_cast<int64>(dv / static_cast<double>(q + 1));
+                        int64 count = v_div_q - v_div_q_next;
+                        total -= static_cast<int128>(count) * Phi_sieve[q];
+                        v_div_q = v_div_q_next;
+                    }
+                } else {
+                    int64 k_split = v / (u + 1);
+                    int64 k_lim = std::min(k_max, k_split);
+
+                    for (int64 k = 2; k <= k_lim; ++k) {
+                        int64 q = v / k;
+                        total -= Phi_dp[n - static_cast<int>(X / q)];
+                    }
+                    for (int64 k = k_lim + 1; k <= k_max; ++k) {
+                        total -= Phi_sieve[v / k];
+                    }
+
+                    int64 q = 1;
+                    int64 v_div_q = v;
+                    for (; q <= K; ++q) {
+                        int64 v_div_q_next = v / (q + 1);
+                        int64 count = v_div_q - v_div_q_next;
+                        total -= static_cast<int128>(count) * Phi_sieve[q];
+                        v_div_q = v_div_q_next;
+                    }
                 }
 
                 Phi_dp[i] = total;
@@ -491,53 +536,75 @@ public:
                 int64 k_max = static_cast<int64>(dv / static_cast<double>(K + 1));
                 int total = static_cast<int>(K);
 
-                int64 k_split = static_cast<int64>(dv / static_cast<double>(u + 1));
-                int64 k_lim = std::min(k_max, k_split);
+                if (v <= 9007199254740992LL) {
+                    int64 k_split = static_cast<int64>(dv / static_cast<double>(u + 1));
+                    int64 k_lim = std::min(k_max, k_split);
 
-                for (int64 k = 2; k <= k_lim; ++k) {
-                    int64 q = static_cast<int64>(dv / static_cast<double>(k));
-                    total -= L_dp[n - static_cast<int>(X / q)];
-                }
-                int64 k = k_lim + 1;
-                for (; k + 3 <= k_max; k += 4) {
-                    total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k))];
-                    total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k + 1))];
-                    total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k + 2))];
-                    total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k + 3))];
-                }
-                for (; k <= k_max; ++k) {
-                    total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k))];
-                }
+                    for (int64 k = 2; k <= k_lim; ++k) {
+                        int64 q = static_cast<int64>(dv / static_cast<double>(k));
+                        total -= L_dp[n - static_cast<int>(X / q)];
+                    }
+                    int64 k = k_lim + 1;
+                    for (; k + 3 <= k_max; k += 4) {
+                        total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k))];
+                        total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k + 1))];
+                        total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k + 2))];
+                        total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k + 3))];
+                    }
+                    for (; k <= k_max; ++k) {
+                        total -= L_sieve[static_cast<int64>(dv / static_cast<double>(k))];
+                    }
 
-                int64 q = 1;
-                int64 v_div_q = v;
+                    int64 q = 1;
+                    int64 v_div_q = v;
 
-                #if defined(__ARM_NEON)
-                float64x2_t v_vec = vdupq_n_f64(dv);
-                for (; q + 3 <= K; q += 4) {
-                    float64x2_t d1 = { static_cast<double>(q + 1), static_cast<double>(q + 2) };
-                    float64x2_t d2 = { static_cast<double>(q + 3), static_cast<double>(q + 4) };
-                    float64x2_t res1 = vdivq_f64(v_vec, d1);
-                    float64x2_t res2 = vdivq_f64(v_vec, d2);
-                    
-                    int64 n1 = static_cast<int64>(vgetq_lane_f64(res1, 0));
-                    int64 n2 = static_cast<int64>(vgetq_lane_f64(res1, 1));
-                    int64 n3 = static_cast<int64>(vgetq_lane_f64(res2, 0));
-                    int64 n4 = static_cast<int64>(vgetq_lane_f64(res2, 1));
-                    
-                    total -= static_cast<int>((v_div_q - n1) * L_sieve[q]);
-                    total -= static_cast<int>((n1 - n2) * L_sieve[q + 1]);
-                    total -= static_cast<int>((n2 - n3) * L_sieve[q + 2]);
-                    total -= static_cast<int>((n3 - n4) * L_sieve[q + 3]);
-                    v_div_q = n4;
-                }
-                #endif
+                    #if defined(__ARM_NEON)
+                    float64x2_t v_vec = vdupq_n_f64(dv);
+                    for (; q + 3 <= K; q += 4) {
+                        float64x2_t d1 = { static_cast<double>(q + 1), static_cast<double>(q + 2) };
+                        float64x2_t d2 = { static_cast<double>(q + 3), static_cast<double>(q + 4) };
+                        float64x2_t res1 = vdivq_f64(v_vec, d1);
+                        float64x2_t res2 = vdivq_f64(v_vec, d2);
+                        
+                        int64 n1 = static_cast<int64>(vgetq_lane_f64(res1, 0));
+                        int64 n2 = static_cast<int64>(vgetq_lane_f64(res1, 1));
+                        int64 n3 = static_cast<int64>(vgetq_lane_f64(res2, 0));
+                        int64 n4 = static_cast<int64>(vgetq_lane_f64(res2, 1));
+                        
+                        total -= static_cast<int>((v_div_q - n1) * L_sieve[q]);
+                        total -= static_cast<int>((n1 - n2) * L_sieve[q + 1]);
+                        total -= static_cast<int>((n2 - n3) * L_sieve[q + 2]);
+                        total -= static_cast<int>((n3 - n4) * L_sieve[q + 3]);
+                        v_div_q = n4;
+                    }
+                    #endif
 
-                for (; q <= K; ++q) {
-                    int64 v_div_q_next = static_cast<int64>(dv / static_cast<double>(q + 1));
-                    int64 count = v_div_q - v_div_q_next;
-                    total -= static_cast<int>(count * L_sieve[q]);
-                    v_div_q = v_div_q_next;
+                    for (; q <= K; ++q) {
+                        int64 v_div_q_next = static_cast<int64>(dv / static_cast<double>(q + 1));
+                        int64 count = v_div_q - v_div_q_next;
+                        total -= static_cast<int>(count * L_sieve[q]);
+                        v_div_q = v_div_q_next;
+                    }
+                } else {
+                    int64 k_split = v / (u + 1);
+                    int64 k_lim = std::min(k_max, k_split);
+
+                    for (int64 k = 2; k <= k_lim; ++k) {
+                        int64 q = v / k;
+                        total -= L_dp[n - static_cast<int>(X / q)];
+                    }
+                    for (int64 k = k_lim + 1; k <= k_max; ++k) {
+                        total -= L_sieve[v / k];
+                    }
+
+                    int64 q = 1;
+                    int64 v_div_q = v;
+                    for (; q <= K; ++q) {
+                        int64 v_div_q_next = v / (q + 1);
+                        int64 count = v_div_q - v_div_q_next;
+                        total -= static_cast<int>(count * L_sieve[q]);
+                        v_div_q = v_div_q_next;
+                    }
                 }
 
                 L_dp[i] = total;
