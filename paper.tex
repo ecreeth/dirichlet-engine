@@ -65,7 +65,7 @@ Summatory arithmetic functions---such as the Mertens function $M(X) = \sum_{n \l
 In this paper, we establish two primary theoretical and algorithmic results:
 \begin{enumerate}
     \item \textbf{Direct Coordinate Bijection:} We prove that the state space $\V(X)$ admits an exact, order-preserving arithmetic bijection $\tau: \V(X) \to \{0, 1, \dots, |\V(X)|-1\}$ computable in $\Oh(1)$ elementary operations, eliminating hash tables, dynamic memory allocations, and search overhead entirely.
-    \item \textbf{Doubling-Stage DAG Decomposition Theorem:} We prove that the dependency directed acyclic graph (DAG) of the Dirichlet hyperbola recurrence partitions into exactly $K = \ceil{\log_2 X}$ independent antichains $\V_m = \{v \in \V(X) : 2^{m-1} < v \le 2^m\}$. This structure enables lock-free, communication-free parallel evaluation with total work $W(X) = \Theta(X^{3/4})$ and critical path span $T_\infty(X) = \Theta(\sqrt{X})$ (reducible to $\Oh(\log^2 X)$ via parallel inner tree reduction), establishing an asymptotic parallel speedup of $\Omega(X^{1/4})$.
+    \item \textbf{Doubling-Stage DAG Decomposition Theorem:} We prove that the dependency directed acyclic graph (DAG) of the Dirichlet hyperbola recurrence partitions into exactly $K + 1 = \ceil{\log_2 X} + 1$ independent antichains ($\V_0 = \{1\}$ and $\V_m = \{v \in \V(X) : 2^{m-1} < v \le 2^m\}$ for $1 \le m \le K$). This structure enables lock-free, communication-free parallel evaluation with total work $W(X) = \Theta(X^{3/4})$ and critical path span $T_\infty(X) = \Theta(\sqrt{X})$ (reducible to $\Oh(\log^2 X)$ via parallel inner tree reduction), establishing an asymptotic parallel speedup of $\Omega(X^{1/4})$.
 \end{enumerate}
 We implement this architecture in an open-source C++20 template library supporting arbitrary Dirichlet convolutions. We report empirical benchmarks scaling up to $X = 10^{16}$ (10 quadrillion), computing $M(10^{12}) = 62,366$ in \textbf{0.20 seconds}, $M(10^{14}) = -875,575$ in \textbf{6.12 seconds}, $M(10^{15}) = -3,216,373$ in \textbf{79.56 seconds}, and $M(10^{16}) = -3,195,437$ in \textbf{622.43 seconds} ($\sim 10.37$ minutes) on a consumer workstation with 8 parallel worker threads (Apple M1 8-core CPU).
 \end{abstract}
@@ -110,7 +110,7 @@ While hyperbolic DP applies to any multiplicative Dirichlet convolution, existin
 In this paper, we resolve both bottlenecks:
 \begin{enumerate}
     \item We formalize and prove a closed-form, arithmetic coordinate bijection $\tau(q)$ that maps any quotient state $q \in \V(X)$ to its dense array index in $\Oh(1)$ operations with zero auxiliary memory (Section \ref{sec:geometry}).
-    \item We prove the \textbf{Doubling-Stage DAG Theorem} (Section \ref{sec:dag}), showing that the dependency graph partitions into $K = \ceil{\log_2 X}$ completely independent parallel stages (antichains).
+    \item We prove the \textbf{Doubling-Stage DAG Theorem} (Section \ref{sec:dag}), showing that the dependency graph partitions into $K + 1 = \ceil{\log_2 X} + 1$ completely independent parallel stages (antichains).
     \item We establish the work-span bounds on the PRAM model, showing an asymptotic parallel speedup of $\Omega(X^{1/4})$ (Section \ref{sec:complexity}).
     \item We provide a unified C++20 template engine validated across multi-core systems up to $X = 10^{16}$ (Sections \ref{sec:engine} and \ref{sec:benchmarks}).
 \end{enumerate}
@@ -566,7 +566,7 @@ $10^{16}$ & $-3{,}195{,}437$ & $622.431$ s & --- & $692.897$ s \\
 
 \section{Conclusion}
 
-We have introduced a mathematically rigorous, lock-free parallel framework for Dirichlet summatory dynamic programming. By proving the \textbf{Direct Coordinate Bijection Theorem}, we remove all dynamic lookup overhead. By establishing the \textbf{Doubling-Stage DAG Theorem}, we demonstrate that sublinear hyperbolic algorithms decompose into $\ceil{\log_2 X}$ parallel antichains with an asymptotic speedup of $\Omega(X^{1/4})$.
+We have introduced a mathematically rigorous, lock-free parallel framework for Dirichlet summatory dynamic programming. By proving the \textbf{Direct Coordinate Bijection Theorem}, we remove all dynamic lookup overhead. By establishing the \textbf{Doubling-Stage DAG Theorem}, we demonstrate that sublinear hyperbolic algorithms decompose into $\ceil{\log_2 X} + 1$ parallel antichains with an asymptotic speedup of $\Omega(X^{1/4})$.
 
 Future work includes extending the doubling framework to $\Oh(X^{2/3})$ combinatorial sieves \cite{deleglise1996computing, hurst2026practical} and developing multi-node MPI clusters for computations beyond $X \ge 10^{18}$.
 
