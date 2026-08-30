@@ -24,15 +24,15 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 
 | Target $X$ | Scale | Function | Exact Output | 15-Thread Runtime |
 | :--- | :--- | :--- | :--- | :--- |
-| $10^{10}$ | $10\text{ Billion}$ | Mertens $M(X)$ | $-33,722$ | **0.037 s** |
-| $10^{10}$ | $10\text{ Billion}$ | Totient Sum $\Phi(X)$ | $30,396,355,092,886,216,366$ | **0.039 s** |
-| $10^{10}$ | $10\text{ Billion}$ | Liouville Sum $L(X)$ | $-116,026$ | **0.025 s** |
-| $10^{10}$ | $10\text{ Billion}$ | Prime Count $\pi(X)$ | $455,052,511$ | **0.014 s** |
-| $10^{12}$ | $1\text{ Trillion}$ | Mertens $M(X)$ | $62,366$ | **0.667 s** ($<0.7\text{ s}$) |
-| $10^{12}$ | $1\text{ Trillion}$ | Totient Sum $\Phi(X)$ | $303,963,550,927,059,804,025,910$ | **0.924 s** |
-| $10^{13}$ | $10\text{ Trillion}$ | Mertens $M(X)$ | $599,582$ | **4.018 s** |
-| $10^{14}$ | $100\text{ Trillion}$ | Mertens $M(X)$ | $-875,575$ | **21.853 s** ($<22\text{ s}$) |
-| $10^{15}$ | $1\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,216,373$ | **160.182 s** ($2.67\text{ min}$) |
+| $10^{10}$ | $10\text{ Billion}$ | Mertens $M(X)$ | $-33,722$ | **0.010 s** |
+| $10^{10}$ | $10\text{ Billion}$ | Totient Sum $\Phi(X)$ | $30,396,355,092,886,216,366$ | **0.012 s** |
+| $10^{10}$ | $10\text{ Billion}$ | Liouville Sum $L(X)$ | $-116,026$ | **0.010 s** |
+| $10^{10}$ | $10\text{ Billion}$ | Prime Count $\pi(X)$ | $455,052,511$ | **0.017 s** |
+| $10^{12}$ | $1\text{ Trillion}$ | Mertens $M(X)$ | $62,366$ | **0.214 s** |
+| $10^{12}$ | $1\text{ Trillion}$ | Totient Sum $\Phi(X)$ | $303,963,550,927,059,804,025,910$ | **0.420 s** |
+| $10^{13}$ | $10\text{ Trillion}$ | Mertens $M(X)$ | $599,582$ | **1.195 s** |
+| $10^{14}$ | $100\text{ Trillion}$ | Mertens $M(X)$ | $-875,575$ | **9.401 s** ($<10\text{ s}$) |
+| $10^{15}$ | $1\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,216,373$ | **91.812 s** ($1.53\text{ min}$) |
 | $10^{16}$ | $10\text{ Quadrillion}$ | Mertens $M(X)$ | $-3,195,437$ | **927.832 s** ($15.46\text{ min}$) |
 
 ### 💻 Benchmark Hardware Specifications
@@ -49,14 +49,15 @@ A high-performance C++20 and Python framework for computing summatory arithmetic
 
 ```text
 .
-├── dirichlet_engine.hpp   # Core C++20 header-only template library
-├── bench.cpp              # Multi-threaded C++ CLI benchmark tool
-├── dirichlet.py           # Pure Python reference engine & test suite
-├── proof.md               # Formal mathematical proofs (Theorems 1–3)
-├── paper.md               # Research manuscript (Markdown)
-├── paper.tex              # Research manuscript (AMS/SIAM LaTeX + TikZ)
-├── references.bib         # BibTeX citation database
-└── README.md              # Project documentation
+├── dirichlet_engine.hpp       # Core C++20 header-only template library
+├── bench.cpp                  # Multi-threaded C++ CLI benchmark tool
+├── reproduce_paper_bench.cpp  # Reproduces LaTeX Table 1 for paper.tex / paper.md
+├── dirichlet.py               # Pure Python reference engine & test suite
+├── proof.md                   # Formal mathematical proofs (Theorems 1–3)
+├── paper.md                   # Research manuscript (Markdown)
+├── paper.tex                  # Research manuscript (AMS/SIAM LaTeX + TikZ)
+├── references.bib             # BibTeX citation database
+└── README.md                  # Project documentation
 ```
 
 ---
@@ -81,14 +82,34 @@ clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
 ./bench mertens 100000000000000 15
 ```
 
-### 2. Python Reference Engine
+### 2. Reproduce Paper Benchmark Table (`paper.tex` / `paper.md`)
+
+To run the multi-scale automated benchmark across all arithmetic functions and generate LaTeX `Table 1` formatted output:
+
+```bash
+# Compile the paper benchmark reproducer
+clang++ -O3 -std=c++20 -Xpreprocessor -fopenmp \
+    -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib -lomp \
+    reproduce_paper_bench.cpp -o reproduce_paper_bench
+
+# Fast run: scales 10^7 through 10^14 (~30 seconds with 15 threads)
+./reproduce_paper_bench 15 14
+
+# Extended run: scales 10^7 through 10^15 (~1.5 minutes with 15 threads)
+./reproduce_paper_bench 15 15
+
+# Full extreme run: scales 10^7 through 10^16
+./reproduce_paper_bench 15 16
+```
+
+### 3. Python Reference Engine
 
 ```bash
 # Run the Python verification suite
 python3 dirichlet.py
 ```
 
-### 3. Using as a C++ Header Library
+### 4. Using as a C++ Header Library
 
 ```cpp
 #include "dirichlet_engine.hpp"
